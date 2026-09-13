@@ -2,7 +2,7 @@ import Link from 'next/link';
 
 const modulos = [
   { nome: 'Profissionais', href: '/profissionais', disponivel: true },
-  { nome: 'Serviços', href: '#', disponivel: false },
+  { nome: 'Serviços', href: '/servicos', disponivel: true },
   { nome: 'Produtos', href: '#', disponivel: false },
   { nome: 'Barbearia', href: '#', disponivel: false },
   { nome: 'Administradores', href: '#', disponivel: false },

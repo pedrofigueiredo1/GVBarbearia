@@ -25,3 +25,17 @@ model Profissional {
 
   @@map("profissionais")
 }
+
+// Entidade referente à User Story "Cadastro de Serviço" (item 2.9 da documentação).
+// Campos obrigatórios definidos nos Critérios da US: nome, descrição, valor e duração.
+model Servico {
+  id             Int      @id @default(autoincrement())
+  nome           String
+  descricao      String
+  valor          Decimal  @db.Decimal(10, 2)
+  duracaoMinutos Int
+  criadoEm       DateTime @default(now())
+  atualizadoEm   DateTime @updatedAt
+
+  @@map("servicos")
+}
