@@ -32,8 +32,13 @@ export async function apiFetch<T>(
     throw new ApiError(message, response.status);
   }
 
-  if (response.status === 204) {
-    return undefined as T;
+  // Nest envia corpo vazio (Content-Length: 0) quando o controller retorna
+  // null/undefined — ex.: GET /barbearia sem registro cadastrado ainda.
+  // response.json() quebra em corpo vazio, então tratamos esse caso à parte
+  // em vez de tentar fazer parse de uma string vazia.
+  const hasBody = response.headers.get('content-length') !== '0';
+  if (response.status === 204 || !hasBody) {
+    return null as T;
   }
 
   return response.json();

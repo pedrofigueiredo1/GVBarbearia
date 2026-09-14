@@ -52,3 +52,18 @@ model Produto {
 
   @@map("produtos")
 }
+
+// Entidade referente às User Stories "Consulta/Edição de Informações da
+// Barbearia" (itens 2.7 e 2.8). Diferente das demais entidades, não existe
+// US de "Cadastro" — é um registro único com os dados institucionais do
+// estabelecimento, sempre acessado/atualizado através do id fixo 1.
+model Barbearia {
+  id                   Int      @id @default(autoincrement())
+  nome                 String
+  endereco             String
+  telefone             String
+  horarioFuncionamento String
+  atualizadoEm         DateTime @updatedAt
+
+  @@map("barbearia")
+}
