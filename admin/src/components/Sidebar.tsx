@@ -3,7 +3,7 @@ import Link from 'next/link';
 const modulos = [
   { nome: 'Profissionais', href: '/profissionais', disponivel: true },
   { nome: 'Serviços', href: '/servicos', disponivel: true },
-  { nome: 'Produtos', href: '#', disponivel: false },
+  { nome: 'Produtos', href: '/produtos', disponivel: true },
   { nome: 'Barbearia', href: '#', disponivel: false },
   { nome: 'Administradores', href: '#', disponivel: false },
   { nome: 'Clientes', href: '#', disponivel: false },

@@ -39,3 +39,16 @@ model Servico {
 
   @@map("servicos")
 }
+
+// Entidade referente à User Story "Cadastro de Produto" (item 2.17 da documentação).
+// Campos obrigatórios definidos nos Critérios da US: nome, descrição e preço.
+model Produto {
+  id           Int      @id @default(autoincrement())
+  nome         String
+  descricao    String
+  preco        Decimal  @db.Decimal(10, 2)
+  criadoEm     DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+
+  @@map("produtos")
+}
