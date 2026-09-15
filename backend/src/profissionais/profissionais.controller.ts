@@ -7,11 +7,16 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  UseGuards,
 } from '@nestjs/common';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { ProfissionaisService } from './profissionais.service';
 import { CreateProfissionalDto } from './dto/create-profissional.dto';
 import { UpdateProfissionalDto } from './dto/update-profissional.dto';
 
+// Conforme a Regra de Negócio "apenas administradores autenticados podem..."
+// presente em todas as US de Profissionais.
+@UseGuards(JwtAuthGuard)
 @Controller('profissionais')
 export class ProfissionaisController {
   constructor(private readonly profissionaisService: ProfissionaisService) {}

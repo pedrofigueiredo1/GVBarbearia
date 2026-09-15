@@ -67,3 +67,18 @@ model Barbearia {
 
   @@map("barbearia")
 }
+
+// Entidade referente às User Stories "Cadastro/Consulta/Edição/Exclusão de
+// Administrador" (itens 2.3 a 2.6). O campo `login` é o e-mail do
+// administrador — usado tanto para autenticação quanto para a futura
+// recuperação de senha (ainda não implementada, depende do envio de e-mail).
+model Administrador {
+  id           Int      @id @default(autoincrement())
+  nome         String
+  login        String   @unique
+  senha        String // hash bcrypt, nunca texto puro
+  criadoEm     DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+
+  @@map("administradores")
+}

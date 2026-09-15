@@ -7,6 +7,8 @@ import { ProfissionaisModule } from './profissionais/profissionais.module';
 import { ServicosModule } from './servicos/servicos.module';
 import { ProdutosModule } from './produtos/produtos.module';
 import { BarbeariaModule } from './barbearia/barbearia.module';
+import { AuthModule } from './auth/auth.module';
+import { AdministradoresModule } from './administradores/administradores.module';
 
 @Module({
   imports: [
@@ -16,6 +18,8 @@ import { BarbeariaModule } from './barbearia/barbearia.module';
     ServicosModule,
     ProdutosModule,
     BarbeariaModule,
+    AuthModule,
+    AdministradoresModule,
   ],
   controllers: [AppController],
   providers: [AppService],

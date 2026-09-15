@@ -1,3 +1,5 @@
+import { clearToken, getToken } from './auth';
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3000';
 
 export class ApiError extends Error {
@@ -10,21 +12,35 @@ export class ApiError extends Error {
 }
 
 // Wrapper único para as chamadas à API do NestJS: centraliza a montagem da
-// URL, o parse do JSON e a extração da mensagem de erro que o backend
-// retorna (ex.: as mensagens do class-validator), para exibir na tela.
+// URL, o parse do JSON, o header de autenticação e a extração da mensagem
+// de erro que o backend retorna (ex.: as mensagens do class-validator).
 export async function apiFetch<T>(
   path: string,
   options?: RequestInit,
 ): Promise<T> {
+  const token = getToken();
+
   const response = await fetch(`${API_URL}${path}`, {
     ...options,
     headers: {
       'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...options?.headers,
     },
   });
 
   if (!response.ok) {
+    // Um 401 com token presente significa que a sessão expirou/é inválida —
+    // limpa e manda pro login. Sem token (ex.: a própria tentativa de
+    // login), o 401 é só "credenciais inválidas" e quem chamou trata a
+    // mensagem normalmente.
+    if (response.status === 401 && token) {
+      clearToken();
+      if (typeof window !== 'undefined') {
+        window.location.href = '/login';
+      }
+    }
+
     const body = await response.json().catch(() => null);
     const message = Array.isArray(body?.message)
       ? body.message.join(' ')
