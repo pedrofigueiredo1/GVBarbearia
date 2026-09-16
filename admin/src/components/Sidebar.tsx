@@ -10,7 +10,7 @@ const modulos = [
   { nome: 'Produtos', href: '/produtos', disponivel: true },
   { nome: 'Barbearia', href: '/barbearia', disponivel: true },
   { nome: 'Administradores', href: '/administradores', disponivel: true },
-  { nome: 'Clientes', href: '#', disponivel: false },
+  { nome: 'Clientes', href: '/clientes', disponivel: true },
   { nome: 'Agendamentos', href: '#', disponivel: false },
   { nome: 'Avaliações', href: '#', disponivel: false },
 ];

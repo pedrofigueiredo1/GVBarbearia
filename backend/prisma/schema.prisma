@@ -82,3 +82,22 @@ model Administrador {
 
   @@map("administradores")
 }
+
+// Entidade referente às User Stories "Consulta/Edição/Exclusão de Cliente"
+// (itens 2.21 a 2.23) e também ao Cadastro de Cliente feito pelo próprio
+// administrador — regra de negócio não documentada nas US originais, mas
+// necessária para atender clientes que preferem ser cadastrados
+// presencialmente na barbearia em vez de pelo app. A senha permite que esse
+// mesmo cadastro seja usado depois para login no app (Cadastro/Login de
+// Cliente pelo app é a via alternativa, ainda não implementada).
+model Cliente {
+  id           Int      @id @default(autoincrement())
+  nome         String
+  email        String   @unique
+  telefone     String
+  senha        String // hash bcrypt, nunca texto puro
+  criadoEm     DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+
+  @@map("clientes")
+}
