@@ -11,7 +11,7 @@ const modulos = [
   { nome: 'Barbearia', href: '/barbearia', disponivel: true },
   { nome: 'Administradores', href: '/administradores', disponivel: true },
   { nome: 'Clientes', href: '/clientes', disponivel: true },
-  { nome: 'Agendamentos', href: '#', disponivel: false },
+  { nome: 'Agendamentos', href: '/agendamentos', disponivel: true },
   { nome: 'Avaliações', href: '#', disponivel: false },
 ];
 

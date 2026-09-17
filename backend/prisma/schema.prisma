@@ -16,12 +16,13 @@ datasource db {
 // Entidade referente à User Story "Cadastro de Profissional" (item 2.13 da documentação).
 // Campos obrigatórios definidos nos Critérios da US: nome, especialidade e descrição.
 model Profissional {
-  id            Int      @id @default(autoincrement())
+  id            Int           @id @default(autoincrement())
   nome          String
   especialidade String
   descricao     String
-  criadoEm      DateTime @default(now())
-  atualizadoEm  DateTime @updatedAt
+  criadoEm      DateTime      @default(now())
+  atualizadoEm  DateTime      @updatedAt
+  agendamentos  Agendamento[]
 
   @@map("profissionais")
 }
@@ -29,13 +30,14 @@ model Profissional {
 // Entidade referente à User Story "Cadastro de Serviço" (item 2.9 da documentação).
 // Campos obrigatórios definidos nos Critérios da US: nome, descrição, valor e duração.
 model Servico {
-  id             Int      @id @default(autoincrement())
+  id             Int           @id @default(autoincrement())
   nome           String
   descricao      String
-  valor          Decimal  @db.Decimal(10, 2)
+  valor          Decimal       @db.Decimal(10, 2)
   duracaoMinutos Int
-  criadoEm       DateTime @default(now())
-  atualizadoEm   DateTime @updatedAt
+  criadoEm       DateTime      @default(now())
+  atualizadoEm   DateTime      @updatedAt
+  agendamentos   Agendamento[]
 
   @@map("servicos")
 }
@@ -91,13 +93,56 @@ model Administrador {
 // mesmo cadastro seja usado depois para login no app (Cadastro/Login de
 // Cliente pelo app é a via alternativa, ainda não implementada).
 model Cliente {
-  id           Int      @id @default(autoincrement())
+  id           Int           @id @default(autoincrement())
   nome         String
-  email        String   @unique
+  email        String        @unique
   telefone     String
   senha        String // hash bcrypt, nunca texto puro
-  criadoEm     DateTime @default(now())
-  atualizadoEm DateTime @updatedAt
+  criadoEm     DateTime      @default(now())
+  atualizadoEm DateTime      @updatedAt
+  agendamentos Agendamento[]
 
   @@map("clientes")
+}
+
+enum StatusAgendamento {
+  PENDENTE
+  CONFIRMADO
+  CONCLUIDO
+  CANCELADO
+}
+
+// Entidade referente às User Stories "Consulta/Edição/Exclusão de
+// Agendamento" (itens 2.25-2.27). Conecta Cliente, Serviço e Profissional.
+//
+// Cadastro pelo admin (não documentado nas US originais — mesma lógica do
+// cadastro presencial de Cliente): quando o administrador registra um
+// agendamento presencialmente, ele já nasce como CONFIRMADO (diferente do
+// fluxo do cliente pelo app, que nasceria PENDENTE até a barbearia
+// confirmar).
+//
+// "Exclusão de Agendamento" na documentação descreve, na prática, um
+// cancelamento: o critério e os testes falam em status "cancelado" e
+// horário liberado, não em remover o registro do banco — por isso o
+// service trata a operação de exclusão como uma atualização de status,
+// preservando o histórico para os relatórios (Relatório de Agendamentos
+// precisa contar confirmados/cancelados/concluídos).
+//
+// Não existe, nas US, uma ação explícita para marcar um agendamento como
+// "concluído" — status também é editável em Edição de Agendamento por
+// necessidade prática (sem isso nada chegaria a esse status).
+model Agendamento {
+  id             Int               @id @default(autoincrement())
+  clienteId      Int
+  cliente        Cliente           @relation(fields: [clienteId], references: [id])
+  servicoId      Int
+  servico        Servico           @relation(fields: [servicoId], references: [id])
+  profissionalId Int
+  profissional   Profissional      @relation(fields: [profissionalId], references: [id])
+  dataHora       DateTime
+  status         StatusAgendamento
+  criadoEm       DateTime          @default(now())
+  atualizadoEm   DateTime          @updatedAt
+
+  @@map("agendamentos")
 }

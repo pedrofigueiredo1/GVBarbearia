@@ -3,7 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import { Prisma, StatusAgendamento } from '@prisma/client';
 import * as bcrypt from 'bcryptjs';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateClienteDto } from './dto/create-cliente.dto';
@@ -78,11 +78,23 @@ export class ClientesService {
     await this.findOne(id);
 
     // Regra de negócio da US Exclusão de Cliente: o sistema deve impedir a
-    // exclusão de cliente com agendamento pendente ou confirmado vinculado.
-    // Esse vínculo ainda não existe no banco (módulo de Agendamentos vem em
-    // uma etapa posterior do cronograma) — quando ele for criado, uma
-    // checagem de agendamentos pendentes/confirmados deve entrar aqui antes
-    // do delete, lançando ConflictException se houver algum.
+    // exclusão de cliente com agendamento pendente ou confirmado vinculado
+    // (aqui, diferente de Profissional/Serviço, a regra não menciona
+    // "futuros" — vale para qualquer agendamento pendente/confirmado,
+    // independente da data).
+    const agendamentoAtivo = await this.prisma.agendamento.findFirst({
+      where: {
+        clienteId: id,
+        status: { in: [StatusAgendamento.PENDENTE, StatusAgendamento.CONFIRMADO] },
+      },
+    });
+
+    if (agendamentoAtivo) {
+      throw new ConflictException(
+        'Não é possível excluir um cliente com agendamento pendente ou confirmado vinculado.',
+      );
+    }
+
     return this.prisma.cliente.delete({
       where: { id },
       select: SELECT_SEM_SENHA,

@@ -1,4 +1,5 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { StatusAgendamento } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateServicoDto } from './dto/create-servico.dto';
 import { UpdateServicoDto } from './dto/update-servico.dto';
@@ -40,10 +41,21 @@ export class ServicosService {
     await this.findOne(id);
 
     // Regra de negócio da US Exclusão de Serviço: o sistema pode bloquear a
-    // exclusão quando há agendamentos futuros vinculados. Esse vínculo ainda
-    // não existe no banco (módulo de Agendamentos vem em uma etapa posterior
-    // do cronograma) — quando ele for criado, um `count` de agendamentos
-    // futuros deve ser checado aqui antes do delete.
+    // exclusão quando há agendamentos futuros vinculados.
+    const agendamentoFuturo = await this.prisma.agendamento.findFirst({
+      where: {
+        servicoId: id,
+        dataHora: { gt: new Date() },
+        status: { in: [StatusAgendamento.PENDENTE, StatusAgendamento.CONFIRMADO] },
+      },
+    });
+
+    if (agendamentoFuturo) {
+      throw new ConflictException(
+        'Não é possível excluir um serviço com agendamentos futuros pendentes ou confirmados.',
+      );
+    }
+
     return this.prisma.servico.delete({ where: { id } });
   }
 }
