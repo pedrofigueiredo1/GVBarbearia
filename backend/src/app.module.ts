@@ -11,6 +11,7 @@ import { AuthModule } from './auth/auth.module';
 import { AdministradoresModule } from './administradores/administradores.module';
 import { ClientesModule } from './clientes/clientes.module';
 import { AgendamentosModule } from './agendamentos/agendamentos.module';
+import { AvaliacoesModule } from './avaliacoes/avaliacoes.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { AgendamentosModule } from './agendamentos/agendamentos.module';
     AdministradoresModule,
     ClientesModule,
     AgendamentosModule,
+    AvaliacoesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -143,6 +143,26 @@ model Agendamento {
   status         StatusAgendamento
   criadoEm       DateTime          @default(now())
   atualizadoEm   DateTime          @updatedAt
+  avaliacao      Avaliacao?
 
   @@map("agendamentos")
+}
+
+// Entidade referente às User Stories "Consulta/Edição/Exclusão de
+// Avaliação" (itens 2.28-2.30). O Cadastro de Avaliação (item 2.54) é feito
+// pelo próprio cliente no app (fase posterior) e exige vínculo com um
+// atendimento concluído — por isso `agendamentoId` é único (uma avaliação
+// por atendimento) e a validação de "atendimento concluído" pertence a
+// essa futura tela de cadastro, não ao painel administrativo, que só
+// consulta/edita/exclui avaliações já existentes.
+model Avaliacao {
+  id            Int         @id @default(autoincrement())
+  agendamentoId Int         @unique
+  agendamento   Agendamento @relation(fields: [agendamentoId], references: [id])
+  nota          Int
+  comentario    String
+  criadoEm      DateTime    @default(now())
+  atualizadoEm  DateTime    @updatedAt
+
+  @@map("avaliacoes")
 }

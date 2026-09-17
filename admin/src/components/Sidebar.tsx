@@ -12,12 +12,10 @@ const modulos = [
   { nome: 'Administradores', href: '/administradores', disponivel: true },
   { nome: 'Clientes', href: '/clientes', disponivel: true },
   { nome: 'Agendamentos', href: '/agendamentos', disponivel: true },
-  { nome: 'Avaliações', href: '#', disponivel: false },
+  { nome: 'Avaliações', href: '/avaliacoes', disponivel: true },
 ];
 
-// Navegação simples do painel. Os módulos ainda não implementados ficam
-// listados (desabilitados) para deixar visível o escopo completo do MVP
-// conforme o cronograma vai avançando, dia a dia.
+// Navegação simples do painel — todos os módulos do MVP já implementados.
 export function Sidebar() {
   const router = useRouter();
 
