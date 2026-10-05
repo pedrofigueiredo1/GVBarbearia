@@ -122,7 +122,7 @@ export function AgendamentoFormModal({ agendamento, onClose, onSalvar }: Props) 
               <select
                 id="clienteId"
                 required
-                className="w-full rounded border border-black/15 dark:border-white/20 bg-transparent px-3 py-2 text-sm"
+                className="w-full rounded border border-black/15 dark:border-white/20 bg-background text-foreground px-3 py-2 text-sm"
                 value={form.clienteId}
                 onChange={(e) => setForm({ ...form, clienteId: e.target.value })}
               >
@@ -144,7 +144,7 @@ export function AgendamentoFormModal({ agendamento, onClose, onSalvar }: Props) 
               <select
                 id="servicoId"
                 required
-                className="w-full rounded border border-black/15 dark:border-white/20 bg-transparent px-3 py-2 text-sm"
+                className="w-full rounded border border-black/15 dark:border-white/20 bg-background text-foreground px-3 py-2 text-sm"
                 value={form.servicoId}
                 onChange={(e) => setForm({ ...form, servicoId: e.target.value })}
               >
@@ -166,7 +166,7 @@ export function AgendamentoFormModal({ agendamento, onClose, onSalvar }: Props) 
               <select
                 id="profissionalId"
                 required
-                className="w-full rounded border border-black/15 dark:border-white/20 bg-transparent px-3 py-2 text-sm"
+                className="w-full rounded border border-black/15 dark:border-white/20 bg-background text-foreground px-3 py-2 text-sm"
                 value={form.profissionalId}
                 onChange={(e) => setForm({ ...form, profissionalId: e.target.value })}
               >
@@ -217,7 +217,7 @@ export function AgendamentoFormModal({ agendamento, onClose, onSalvar }: Props) 
                 </label>
                 <select
                   id="status"
-                  className="w-full rounded border border-black/15 dark:border-white/20 bg-transparent px-3 py-2 text-sm"
+                  className="w-full rounded border border-black/15 dark:border-white/20 bg-background text-foreground px-3 py-2 text-sm"
                   value={form.status}
                   onChange={(e) =>
                     setForm({ ...form, status: e.target.value as StatusAgendamento })

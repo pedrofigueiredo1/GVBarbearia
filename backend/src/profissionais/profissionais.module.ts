@@ -1,9 +1,19 @@
 import { Module } from '@nestjs/common';
 import { ProfissionaisController } from './profissionais.controller';
-import { ProfissionaisService } from './profissionais.service';
+import { AdicionarProfissional } from './operacoes/adicionar-profissional';
+import { ListarProfissionais } from './operacoes/listar-profissionais';
+import { BuscarProfissional } from './operacoes/buscar-profissional';
+import { EditarProfissional } from './operacoes/editar-profissional';
+import { ExcluirProfissional } from './operacoes/excluir-profissional';
 
 @Module({
   controllers: [ProfissionaisController],
-  providers: [ProfissionaisService],
+  providers: [
+    AdicionarProfissional,
+    ListarProfissionais,
+    BuscarProfissional,
+    EditarProfissional,
+    ExcluirProfissional,
+  ],
 })
 export class ProfissionaisModule {}

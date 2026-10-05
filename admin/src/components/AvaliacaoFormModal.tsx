@@ -50,7 +50,7 @@ export function AvaliacaoFormModal({ avaliacao, onClose, onSalvar }: Props) {
             <select
               id="nota"
               required
-              className="w-full rounded border border-black/15 dark:border-white/20 bg-transparent px-3 py-2 text-sm"
+              className="w-full rounded border border-black/15 dark:border-white/20 bg-background text-foreground px-3 py-2 text-sm"
               value={form.nota}
               onChange={(e) => setForm({ ...form, nota: Number(e.target.value) })}
             >

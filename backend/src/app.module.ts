@@ -12,6 +12,7 @@ import { AdministradoresModule } from './administradores/administradores.module'
 import { ClientesModule } from './clientes/clientes.module';
 import { AgendamentosModule } from './agendamentos/agendamentos.module';
 import { AvaliacoesModule } from './avaliacoes/avaliacoes.module';
+import { RelatoriosModule } from './relatorios/relatorios.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { AvaliacoesModule } from './avaliacoes/avaliacoes.module';
     ClientesModule,
     AgendamentosModule,
     AvaliacoesModule,
+    RelatoriosModule,
   ],
   controllers: [AppController],
   providers: [AppService],

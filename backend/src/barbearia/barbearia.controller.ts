@@ -1,7 +1,8 @@
 import { Body, Controller, Get, Put, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { BarbeariaService } from './barbearia.service';
 import { BarbeariaDto } from './dto/barbearia.dto';
+import { ConsultarBarbearia } from './operacoes/consultar-barbearia';
+import { EditarBarbearia } from './operacoes/editar-barbearia';
 
 // Nota: a US "Consulta de Informações da Barbearia" também existe para o
 // cliente (sem exigir autenticação de administrador) — quando o app do
@@ -10,15 +11,20 @@ import { BarbeariaDto } from './dto/barbearia.dto';
 @UseGuards(JwtAuthGuard)
 @Controller('barbearia')
 export class BarbeariaController {
-  constructor(private readonly barbeariaService: BarbeariaService) {}
+  constructor(
+    private readonly consultarBarbearia: ConsultarBarbearia,
+    private readonly editarBarbearia: EditarBarbearia,
+  ) {}
 
+  // ===== CONSULTAR BARBEARIA =====
   @Get()
   findOne() {
-    return this.barbeariaService.findOne();
+    return this.consultarBarbearia.executar();
   }
 
+  // ===== EDITAR BARBEARIA =====
   @Put()
   upsert(@Body() dto: BarbeariaDto) {
-    return this.barbeariaService.upsert(dto);
+    return this.editarBarbearia.executar(dto);
   }
 }
