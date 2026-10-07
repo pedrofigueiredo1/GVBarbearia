@@ -6,7 +6,9 @@ import { listarClientes } from '@/lib/clientes';
 import { listarServicos } from '@/lib/servicos';
 import { listarProfissionais } from '@/lib/profissionais';
 import {
-  exportarAgendamentosCsv,
+  SEM_FILTROS,
+  descreverFiltros,
+  exportarAgendamentosPdf,
   gerarRelatorioAgendamentos,
 } from '@/lib/relatorios';
 import type { Cliente } from '@/types/cliente';
@@ -51,14 +53,16 @@ export default function RelatorioAgendamentosPage() {
   const [servicos, setServicos] = useState<Servico[]>([]);
   const [profissionais, setProfissionais] = useState<Profissional[]>([]);
   const [relatorio, setRelatorio] = useState<RelatorioAgendamentos | null>(null);
+  const [descricaoFiltros, setDescricaoFiltros] = useState<string[]>([SEM_FILTROS]);
   const [carregando, setCarregando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
 
-  async function gerar(filtros: FiltrosRelatorio) {
+  async function gerar(filtros: FiltrosRelatorio, descricao: string[] = [SEM_FILTROS]) {
     setCarregando(true);
     setErro(null);
     try {
       setRelatorio(await gerarRelatorioAgendamentos(filtros));
+      setDescricaoFiltros(descricao);
     } catch (err) {
       setErro(
         err instanceof ApiError ? err.message : 'Não foi possível gerar o relatório.',
@@ -81,7 +85,14 @@ export default function RelatorioAgendamentosPage() {
 
   function handleGerar(event: FormEvent) {
     event.preventDefault();
-    gerar(paraFiltros(form));
+    gerar(
+      paraFiltros(form),
+      descreverFiltros(form.dataInicio, form.dataFim, [
+        ['Cliente', clientes.find((c) => String(c.id) === form.clienteId)?.nome],
+        ['Serviço', servicos.find((s) => String(s.id) === form.servicoId)?.nome],
+        ['Profissional', profissionais.find((p) => String(p.id) === form.profissionalId)?.nome],
+      ]),
+    );
   }
 
   function handleLimpar() {
@@ -215,11 +226,11 @@ export default function RelatorioAgendamentosPage() {
               {relatorio.total} agendamento(s) no período
             </p>
             <button
-              onClick={() => exportarAgendamentosCsv(relatorio.agendamentos)}
+              onClick={() => exportarAgendamentosPdf(relatorio, descricaoFiltros)}
               disabled={relatorio.total === 0}
-              className="rounded border border-black/15 dark:border-white/20 px-3 py-1.5 text-sm disabled:opacity-50"
+              className="rounded bg-foreground text-background px-3 py-1.5 text-sm font-medium disabled:opacity-50"
             >
-              Exportar CSV
+              Exportar PDF
             </button>
           </div>
 

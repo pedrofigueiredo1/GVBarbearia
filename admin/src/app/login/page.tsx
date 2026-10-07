@@ -1,6 +1,7 @@
 'use client';
 
 import { FormEvent, useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ApiError } from '@/lib/api';
 import { login } from '@/lib/authApi';
@@ -78,6 +79,10 @@ export default function LoginPage() {
         >
           {entrando ? 'Entrando...' : 'Entrar'}
         </button>
+
+        <Link href="/login/esqueci-senha" className="text-sm underline text-center">
+          Esqueci minha senha
+        </Link>
       </form>
     </div>
   );

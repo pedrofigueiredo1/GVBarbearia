@@ -13,8 +13,7 @@ const modulos = [
   { nome: 'Clientes', href: '/clientes', disponivel: true },
   { nome: 'Agendamentos', href: '/agendamentos', disponivel: true },
   { nome: 'Avaliações', href: '/avaliacoes', disponivel: true },
-  { nome: 'Relatório de Agendamentos', href: '/relatorios/agendamentos', disponivel: true },
-  { nome: 'Serviços mais agendados', href: '/relatorios/servicos', disponivel: true },
+  { nome: 'Relatórios', href: '/relatorios', disponivel: true },
 ];
 
 // Navegação simples do painel — todos os módulos do MVP já implementados.

@@ -5,10 +5,14 @@ import { PassportModule } from '@nestjs/passport';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { JwtStrategy } from './jwt.strategy';
+import { MailModule } from '../mail/mail.module';
+import { SolicitarRecuperacaoSenha } from './operacoes/solicitar-recuperacao-senha';
+import { RedefinirSenha } from './operacoes/redefinir-senha';
 
 @Module({
   imports: [
     PassportModule,
+    MailModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -19,6 +23,6 @@ import { JwtStrategy } from './jwt.strategy';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy],
+  providers: [AuthService, JwtStrategy, SolicitarRecuperacaoSenha, RedefinirSenha],
 })
 export class AuthModule {}

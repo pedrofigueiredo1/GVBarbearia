@@ -79,6 +79,10 @@ model Administrador {
   nome         String
   login        String   @unique
   senha        String // hash bcrypt, nunca texto puro
+  // Recuperação de senha (US 2.2): guarda só o hash SHA-256 do token enviado
+  // por e-mail, nunca o token em si, e a validade de 15 minutos.
+  tokenRecuperacaoHash     String?
+  tokenRecuperacaoExpiraEm DateTime?
   criadoEm     DateTime @default(now())
   atualizadoEm DateTime @updatedAt
 

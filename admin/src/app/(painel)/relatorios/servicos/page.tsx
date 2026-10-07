@@ -2,7 +2,12 @@
 
 import { FormEvent, useEffect, useState } from 'react';
 import { ApiError } from '@/lib/api';
-import { gerarRelatorioServicosMaisAgendados } from '@/lib/relatorios';
+import {
+  SEM_FILTROS,
+  descreverFiltros,
+  exportarServicosPdf,
+  gerarRelatorioServicosMaisAgendados,
+} from '@/lib/relatorios';
 import type { ServicoMaisAgendado } from '@/types/relatorio';
 
 const formatarValor = (valor: string) =>
@@ -20,14 +25,19 @@ export default function RelatorioServicosPage() {
   const [dataInicio, setDataInicio] = useState('');
   const [dataFim, setDataFim] = useState('');
   const [ranking, setRanking] = useState<ServicoMaisAgendado[] | null>(null);
+  const [descricaoFiltros, setDescricaoFiltros] = useState<string[]>([SEM_FILTROS]);
   const [carregando, setCarregando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
 
-  async function gerar(filtros: { dataInicio?: string; dataFim?: string }) {
+  async function gerar(
+    filtros: { dataInicio?: string; dataFim?: string },
+    descricao: string[] = [SEM_FILTROS],
+  ) {
     setCarregando(true);
     setErro(null);
     try {
       setRanking(await gerarRelatorioServicosMaisAgendados(filtros));
+      setDescricaoFiltros(descricao);
     } catch (err) {
       setErro(err instanceof ApiError ? err.message : 'Não foi possível gerar o relatório.');
     } finally {
@@ -41,7 +51,7 @@ export default function RelatorioServicosPage() {
 
   function handleGerar(event: FormEvent) {
     event.preventDefault();
-    gerar(paraFiltros(dataInicio, dataFim));
+    gerar(paraFiltros(dataInicio, dataFim), descreverFiltros(dataInicio, dataFim));
   }
 
   return (
@@ -88,6 +98,17 @@ export default function RelatorioServicosPage() {
         <p className="text-sm text-black/60 dark:text-white/60">
           Nenhum serviço foi agendado no período selecionado.
         </p>
+      )}
+
+      {ranking && !erro && ranking.length > 0 && (
+        <div className="flex justify-end mb-3">
+          <button
+            onClick={() => exportarServicosPdf(ranking, descricaoFiltros)}
+            className="rounded bg-foreground text-background px-3 py-1.5 text-sm font-medium"
+          >
+            Exportar PDF
+          </button>
+        </div>
       )}
 
       {ranking && !erro && ranking.length > 0 && (
