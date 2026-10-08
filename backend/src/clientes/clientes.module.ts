@@ -15,5 +15,6 @@ import { ExcluirCliente } from './operacoes/excluir-cliente';
     EditarCliente,
     ExcluirCliente,
   ],
+  exports: [BuscarCliente],
 })
 export class ClientesModule {}

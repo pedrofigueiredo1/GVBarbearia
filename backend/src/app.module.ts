@@ -13,6 +13,7 @@ import { ClientesModule } from './clientes/clientes.module';
 import { AgendamentosModule } from './agendamentos/agendamentos.module';
 import { AvaliacoesModule } from './avaliacoes/avaliacoes.module';
 import { RelatoriosModule } from './relatorios/relatorios.module';
+import { AuthClienteModule } from './auth-cliente/auth-cliente.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { RelatoriosModule } from './relatorios/relatorios.module';
     AgendamentosModule,
     AvaliacoesModule,
     RelatoriosModule,
+    AuthClienteModule,
   ],
   controllers: [AppController],
   providers: [AppService],
