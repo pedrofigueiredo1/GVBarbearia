@@ -9,6 +9,12 @@ import { Injectable, Logger } from '@nestjs/common';
 export class MailService {
   private readonly logger = new Logger(MailService.name);
 
+  enviarCodigoRecuperacaoSenha(destinatario: string, codigo: string) {
+    this.logger.log(
+      `[E-MAIL SIMULADO] Para: ${destinatario} | Código de recuperação de senha (válido por 15 minutos): ${codigo}`,
+    );
+  }
+
   enviarLinkRecuperacaoSenha(destinatario: string, link: string) {
     this.logger.log(
       `[E-MAIL SIMULADO] Para: ${destinatario} | Link de redefinição de senha (válido por 15 minutos): ${link}`,

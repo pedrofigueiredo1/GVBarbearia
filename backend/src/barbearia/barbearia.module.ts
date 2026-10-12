@@ -6,5 +6,6 @@ import { EditarBarbearia } from './operacoes/editar-barbearia';
 @Module({
   controllers: [BarbeariaController],
   providers: [ConsultarBarbearia, EditarBarbearia],
+  exports: [ConsultarBarbearia],
 })
 export class BarbeariaModule {}

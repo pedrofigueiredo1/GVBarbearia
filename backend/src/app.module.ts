@@ -14,6 +14,7 @@ import { AgendamentosModule } from './agendamentos/agendamentos.module';
 import { AvaliacoesModule } from './avaliacoes/avaliacoes.module';
 import { RelatoriosModule } from './relatorios/relatorios.module';
 import { AuthClienteModule } from './auth-cliente/auth-cliente.module';
+import { PublicoModule } from './publico/publico.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { AuthClienteModule } from './auth-cliente/auth-cliente.module';
     AvaliacoesModule,
     RelatoriosModule,
     AuthClienteModule,
+    PublicoModule,
   ],
   controllers: [AppController],
   providers: [AppService],

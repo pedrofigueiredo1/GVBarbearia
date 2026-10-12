@@ -15,5 +15,6 @@ import { ExcluirProduto } from './operacoes/excluir-produto';
     EditarProduto,
     ExcluirProduto,
   ],
+  exports: [ListarProdutos],
 })
 export class ProdutosModule {}

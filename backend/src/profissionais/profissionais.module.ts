@@ -15,5 +15,6 @@ import { ExcluirProfissional } from './operacoes/excluir-profissional';
     EditarProfissional,
     ExcluirProfissional,
   ],
+  exports: [ListarProfissionais],
 })
 export class ProfissionaisModule {}

@@ -1,6 +1,16 @@
 import { Stack } from 'expo-router';
 
-// Telas da área logada do cliente (home, serviços, agendamentos, perfil...).
+// Telas da área logada do cliente. A Home não tem cabeçalho; as demais têm
+// título e botão de voltar.
 export default function ClienteLayout() {
-  return <Stack screenOptions={{ headerShown: false }} />;
+  return (
+    <Stack>
+      <Stack.Screen name="index" options={{ headerShown: false }} />
+      <Stack.Screen name="barbearia" options={{ title: 'Informações da barbearia' }} />
+      <Stack.Screen name="servicos" options={{ title: 'Serviços' }} />
+      <Stack.Screen name="profissionais" options={{ title: 'Profissionais' }} />
+      <Stack.Screen name="produtos" options={{ title: 'Produtos' }} />
+      <Stack.Screen name="avaliacoes" options={{ title: 'Avaliações' }} />
+    </Stack>
+  );
 }

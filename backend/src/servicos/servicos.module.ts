@@ -15,5 +15,6 @@ import { ExcluirServico } from './operacoes/excluir-servico';
     EditarServico,
     ExcluirServico,
   ],
+  exports: [ListarServicos],
 })
 export class ServicosModule {}

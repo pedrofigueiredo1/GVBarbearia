@@ -1,25 +1,57 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { router } from 'expo-router';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Botao } from '@/components/Botao';
 import { useAuth } from '@/context/AuthContext';
 
-// Placeholder do Dia B0: a Home de verdade (US 2.40) vem no Dia B3. O botão
-// Sair já usa o logout real, que fecha a sessão e volta para o login.
+const OPCOES = [
+  { titulo: 'Informações da barbearia', descricao: 'Endereço, telefone e horário de funcionamento', rota: '/barbearia' },
+  { titulo: 'Serviços', descricao: 'Veja o que oferecemos, valores e duração', rota: '/servicos' },
+  { titulo: 'Profissionais', descricao: 'Conheça quem atende na barbearia', rota: '/profissionais' },
+  { titulo: 'Produtos', descricao: 'Produtos disponíveis na barbearia', rota: '/produtos' },
+  { titulo: 'Avaliações', descricao: 'O que os clientes estão dizendo', rota: '/avaliacoes' },
+] as const;
+
+// US Visualização da Home (item 2.40): tela inicial do cliente logado, com
+// acesso às consultas. Agendar, "Meus agendamentos" e Perfil entram nos
+// próximos dias.
 export default function HomeScreen() {
-  const { sair } = useAuth();
+  const { cliente, sair } = useAuth();
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.titulo}>Home do cliente</Text>
-      <Text>Área logada (tela em construção)</Text>
-      <Pressable onPress={sair} style={styles.botao}>
-        <Text style={styles.textoBotao}>Sair</Text>
-      </Pressable>
-    </View>
+    <SafeAreaView style={styles.safe}>
+      <ScrollView contentContainerStyle={styles.conteudo}>
+        <Text style={styles.titulo}>Olá{cliente ? `, ${cliente.nome}` : ''}!</Text>
+        <Text style={styles.subtitulo}>O que você quer ver hoje?</Text>
+
+        <View style={styles.opcoes}>
+          {OPCOES.map((opcao) => (
+            <Pressable
+              key={opcao.rota}
+              accessibilityRole="button"
+              accessibilityLabel={opcao.titulo}
+              onPress={() => router.push(opcao.rota)}
+              style={styles.opcao}
+            >
+              <Text style={styles.opcaoTitulo}>{opcao.titulo}</Text>
+              <Text style={styles.opcaoDescricao}>{opcao.descricao}</Text>
+            </Pressable>
+          ))}
+        </View>
+
+        <Botao titulo="Sair" secundario onPress={sair} />
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 8, padding: 24 },
-  titulo: { fontSize: 22, fontWeight: '600' },
-  botao: { marginTop: 16, paddingHorizontal: 20, paddingVertical: 10, backgroundColor: '#222', borderRadius: 6 },
-  textoBotao: { color: '#fff', fontWeight: '600' },
+  safe: { flex: 1, backgroundColor: '#fff' },
+  conteudo: { padding: 20, gap: 12 },
+  titulo: { fontSize: 24, fontWeight: '700' },
+  subtitulo: { color: '#555', marginBottom: 4 },
+  opcoes: { gap: 10, marginVertical: 8 },
+  opcao: { borderWidth: 1, borderColor: '#ddd', borderRadius: 8, padding: 14, gap: 2 },
+  opcaoTitulo: { fontSize: 17, fontWeight: '600' },
+  opcaoDescricao: { color: '#555' },
 });

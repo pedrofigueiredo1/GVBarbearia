@@ -102,6 +102,12 @@ model Cliente {
   email        String        @unique
   telefone     String
   senha        String // hash bcrypt, nunca texto puro
+  // Recuperação de senha (US 2.39): código de 6 dígitos enviado por e-mail.
+  // Guarda só o hash do código, a validade (15 minutos) e quantas tentativas
+  // erradas já foram feitas — passado o limite, o código é invalidado.
+  codigoRecuperacaoHash     String?
+  codigoRecuperacaoExpiraEm DateTime?
+  tentativasRecuperacao     Int           @default(0)
   criadoEm     DateTime      @default(now())
   atualizadoEm DateTime      @updatedAt
   agendamentos Agendamento[]
