@@ -5,6 +5,8 @@ import { Botao } from '@/components/Botao';
 import { useAuth } from '@/context/AuthContext';
 
 const OPCOES = [
+  { titulo: 'Agendar horário', descricao: 'Escolha o serviço, o profissional, a data e o horário', rota: '/agendar' },
+  { titulo: 'Meus agendamentos', descricao: 'Veja seus horários e cancele se precisar', rota: '/meus-agendamentos' },
   { titulo: 'Informações da barbearia', descricao: 'Endereço, telefone e horário de funcionamento', rota: '/barbearia' },
   { titulo: 'Serviços', descricao: 'Veja o que oferecemos, valores e duração', rota: '/servicos' },
   { titulo: 'Profissionais', descricao: 'Conheça quem atende na barbearia', rota: '/profissionais' },
@@ -13,8 +15,8 @@ const OPCOES = [
 ] as const;
 
 // US Visualização da Home (item 2.40): tela inicial do cliente logado, com
-// acesso às consultas. Agendar, "Meus agendamentos" e Perfil entram nos
-// próximos dias.
+// acesso ao agendamento, aos meus agendamentos e às consultas. O Perfil entra
+// nos próximos dias.
 export default function HomeScreen() {
   const { cliente, sair } = useAuth();
 
