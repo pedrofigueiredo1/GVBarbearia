@@ -16,6 +16,7 @@ interface AuthContextValue {
   cliente: ClienteLogado | null;
   carregando: boolean;
   entrar: (token: string) => Promise<void>;
+  atualizarCliente: (cliente: ClienteLogado) => void;
   sair: () => Promise<void>;
 }
 
@@ -57,7 +58,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const valor = useMemo(
-    () => ({ token, cliente, carregando, entrar, sair }),
+    () => ({ token, cliente, carregando, entrar, atualizarCliente: setCliente, sair }),
     [token, cliente, carregando, entrar, sair],
   );
 

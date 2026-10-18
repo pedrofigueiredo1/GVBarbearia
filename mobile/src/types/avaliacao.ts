@@ -7,3 +7,9 @@ export interface AvaliacaoPublica {
   servico: string;
   profissional: string;
 }
+
+export interface NovaAvaliacaoInput {
+  agendamentoId: number;
+  nota: number;
+  comentario: string;
+}

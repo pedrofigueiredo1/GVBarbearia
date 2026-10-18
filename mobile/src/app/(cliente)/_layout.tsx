@@ -12,6 +12,8 @@ export default function ClienteLayout() {
         options={{ title: 'Agendamento realizado', headerBackVisible: false }}
       />
       <Stack.Screen name="meus-agendamentos" options={{ title: 'Meus agendamentos' }} />
+      <Stack.Screen name="avaliar" options={{ title: 'Avaliar atendimento' }} />
+      <Stack.Screen name="perfil" options={{ title: 'Meu perfil' }} />
       <Stack.Screen name="barbearia" options={{ title: 'Informações da barbearia' }} />
       <Stack.Screen name="servicos" options={{ title: 'Serviços' }} />
       <Stack.Screen name="profissionais" options={{ title: 'Profissionais' }} />

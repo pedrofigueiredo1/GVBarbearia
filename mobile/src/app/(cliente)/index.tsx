@@ -12,11 +12,12 @@ const OPCOES = [
   { titulo: 'Profissionais', descricao: 'Conheça quem atende na barbearia', rota: '/profissionais' },
   { titulo: 'Produtos', descricao: 'Produtos disponíveis na barbearia', rota: '/produtos' },
   { titulo: 'Avaliações', descricao: 'O que os clientes estão dizendo', rota: '/avaliacoes' },
+  { titulo: 'Meu perfil', descricao: 'Veja e edite seus dados e sua senha', rota: '/perfil' },
 ] as const;
 
 // US Visualização da Home (item 2.40): tela inicial do cliente logado, com
-// acesso ao agendamento, aos meus agendamentos e às consultas. O Perfil entra
-// nos próximos dias.
+// acesso ao agendamento, aos meus agendamentos, às consultas e ao perfil. O
+// botão Sair encerra a sessão (US Logout, item 2.56) e volta para o login.
 export default function HomeScreen() {
   const { cliente, sair } = useAuth();
 

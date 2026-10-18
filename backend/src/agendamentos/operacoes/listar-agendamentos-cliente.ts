@@ -15,7 +15,12 @@ export class ListarAgendamentosCliente {
   executar(clienteId: number) {
     return this.prisma.agendamento.findMany({
       where: { clienteId },
-      include: INCLUDE_RELACOES,
+      // A avaliação (se já existir) mostra ao app quais atendimentos concluídos
+      // ainda podem ser avaliados.
+      include: {
+        ...INCLUDE_RELACOES,
+        avaliacao: { select: { id: true, nota: true } },
+      },
       orderBy: { dataHora: 'asc' },
     });
   }

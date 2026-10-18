@@ -1,12 +1,12 @@
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, RefreshControl, SectionList, StyleSheet, Text, View } from 'react-native';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { Botao } from '@/components/Botao';
 import { Cartao, TextoCartao } from '@/components/Cartao';
 import { useCarregar } from '@/hooks/useCarregar';
 import { ApiError } from '@/lib/api';
 import { cancelarAgendamento, listarAgendamentos } from '@/lib/agendamentos';
-import { formatarData, formatarHora, formatarMoeda } from '@/lib/formatar';
+import { formatarData, formatarEstrelas, formatarHora, formatarMoeda } from '@/lib/formatar';
 import { STATUS_LABEL, type Agendamento, type StatusAgendamento } from '@/types/agendamento';
 
 // US Cancelamento de Agendamento pelo Cliente (item 2.53): só com no mínimo
@@ -32,6 +32,16 @@ export default function MeusAgendamentosScreen() {
   const { dados, carregando, erro, recarregar } = useCarregar(listarAgendamentos);
   const [cancelandoId, setCancelandoId] = useState<number | null>(null);
   const [mensagem, setMensagem] = useState<Mensagem | null>(null);
+
+  // Ao voltar para esta tela (por exemplo, depois de avaliar um atendimento) a
+  // lista é buscada de novo. A primeira vez já é carregada pelo useCarregar.
+  const jaAbriu = useRef(false);
+  useFocusEffect(
+    useCallback(() => {
+      if (jaAbriu.current) recarregar();
+      else jaAbriu.current = true;
+    }, [recarregar]),
+  );
 
   const secoes = useMemo(() => {
     const agora = Date.now();
@@ -130,6 +140,26 @@ export default function MeusAgendamentosScreen() {
                 {formatarData(item.dataHora)} às {formatarHora(item.dataHora)}
               </TextoCartao>
               <TextoCartao>Valor: {formatarMoeda(item.servico.valor)}</TextoCartao>
+              {item.status === 'CONCLUIDO' && item.avaliacao && (
+                <TextoCartao>Sua avaliação: {formatarEstrelas(item.avaliacao.nota)}</TextoCartao>
+              )}
+              {item.status === 'CONCLUIDO' && !item.avaliacao && (
+                <View style={styles.acao}>
+                  <Botao
+                    titulo="Avaliar atendimento"
+                    secundario
+                    onPress={() =>
+                      router.push({
+                        pathname: '/avaliar',
+                        params: {
+                          agendamentoId: String(item.id),
+                          resumo: `${item.servico.nome} com ${item.profissional.nome}, em ${formatarData(item.dataHora)}`,
+                        },
+                      })
+                    }
+                  />
+                </View>
+              )}
               {section.proximo && podeCancelar && (
                 <View style={styles.acao}>
                   <Botao
