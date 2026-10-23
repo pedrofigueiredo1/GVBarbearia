@@ -245,7 +245,7 @@ export function AgendamentoFormModal({ agendamento, onClose, onSalvar }: Props) 
               <button
                 type="submit"
                 disabled={salvando}
-                className="rounded bg-foreground text-background px-4 py-2 text-sm font-medium disabled:opacity-50"
+                className="rounded bg-copper text-copper-ink hover:brightness-110 px-4 py-2 text-sm font-medium disabled:opacity-50"
               >
                 {salvando ? 'Salvando...' : 'Salvar'}
               </button>

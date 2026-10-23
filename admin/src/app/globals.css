@@ -1,26 +1,81 @@
 @import "tailwindcss";
 
+/* O painel é sempre escuro (identidade da GV Barbearia): o variant `dark:` das
+   telas passa a depender da classe `dark` no <html>, e não do tema do sistema. */
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #0a0a0b;
+  --foreground: #f5f2ee;
+  --superficie: #151518;
+  --superficie-alta: #1e1e22;
+  --borda: #2b2b31;
+  --texto-secundario: #9c9ca6;
+  color-scheme: dark;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-superficie: var(--superficie);
+  --color-superficie-alta: var(--superficie-alta);
+  --color-borda: var(--borda);
+  --color-copper: #f8b878;
+  --color-copper-ink: #1a1208;
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* Vermelhos mais claros para ler bem no fundo escuro (erros e "Excluir"). */
+@theme {
+  --color-red-600: #ff6b6b;
+  --color-red-200: #5a2a2d;
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer base {
+  body {
+    background: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+  }
+
+  /* Campos de formulário: foco em cobre e lista de opções escura. */
+  input,
+  select,
+  textarea {
+    outline: none;
+  }
+  input:focus,
+  select:focus,
+  textarea:focus {
+    border-color: var(--color-copper);
+    box-shadow: 0 0 0 1px var(--color-copper);
+  }
+  select option {
+    background: var(--superficie);
+    color: var(--foreground);
+  }
+
+  /* Tabelas das listagens e dos relatórios. */
+  thead th {
+    color: var(--texto-secundario);
+    font-size: 0.75rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  tbody tr:hover {
+    background: rgba(255, 255, 255, 0.03);
+  }
+
+  /* "Editar" e outros links de ação ficam cobre; "Excluir" mantém o vermelho
+     porque a classe text-red-600 da tela vence esta regra. */
+  button.underline,
+  a.underline {
+    color: var(--color-copper);
+    text-decoration: none;
+  }
+  button.underline:hover,
+  a.underline:hover {
+    text-decoration: underline;
+  }
 }

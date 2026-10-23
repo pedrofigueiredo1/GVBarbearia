@@ -72,7 +72,7 @@ export default function ProdutosPage() {
         <h2 className="text-2xl font-semibold">Produtos</h2>
         <button
           onClick={() => setModal({ aberto: true, produto: null })}
-          className="rounded bg-foreground text-background px-4 py-2 text-sm font-medium"
+          className="rounded bg-copper text-copper-ink hover:brightness-110 px-4 py-2 text-sm font-medium"
         >
           + Novo produto
         </button>

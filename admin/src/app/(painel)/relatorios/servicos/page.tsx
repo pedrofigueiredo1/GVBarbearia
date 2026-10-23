@@ -86,7 +86,7 @@ export default function RelatorioServicosPage() {
         <button
           type="submit"
           disabled={carregando}
-          className="rounded bg-foreground text-background px-4 py-2 text-sm font-medium disabled:opacity-50"
+          className="rounded bg-copper text-copper-ink hover:brightness-110 px-4 py-2 text-sm font-medium disabled:opacity-50"
         >
           {carregando ? 'Gerando...' : 'Gerar relatório'}
         </button>
@@ -104,7 +104,7 @@ export default function RelatorioServicosPage() {
         <div className="flex justify-end mb-3">
           <button
             onClick={() => exportarServicosPdf(ranking, descricaoFiltros)}
-            className="rounded bg-foreground text-background px-3 py-1.5 text-sm font-medium"
+            className="rounded bg-copper text-copper-ink hover:brightness-110 px-3 py-1.5 text-sm font-medium"
           >
             Exportar PDF
           </button>

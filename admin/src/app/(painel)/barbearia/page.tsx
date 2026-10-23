@@ -84,7 +84,7 @@ export default function BarbeariaPage() {
         {!editando && (
           <button
             onClick={iniciarEdicao}
-            className="rounded bg-foreground text-background px-4 py-2 text-sm font-medium"
+            className="rounded bg-copper text-copper-ink hover:brightness-110 px-4 py-2 text-sm font-medium"
           >
             {barbearia ? 'Editar informações' : 'Cadastrar informações'}
           </button>
@@ -196,7 +196,7 @@ export default function BarbeariaPage() {
             <button
               type="submit"
               disabled={salvando}
-              className="rounded bg-foreground text-background px-4 py-2 text-sm font-medium disabled:opacity-50"
+              className="rounded bg-copper text-copper-ink hover:brightness-110 px-4 py-2 text-sm font-medium disabled:opacity-50"
             >
               {salvando ? 'Salvando...' : 'Salvar'}
             </button>

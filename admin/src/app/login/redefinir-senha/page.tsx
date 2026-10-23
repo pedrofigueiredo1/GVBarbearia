@@ -1,6 +1,7 @@
 'use client';
 
 import { FormEvent, Suspense, useState } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { ApiError } from '@/lib/api';
@@ -40,8 +41,9 @@ function RedefinirSenhaForm() {
     <div className="min-h-screen flex items-center justify-center p-4">
       <form
         onSubmit={handleSubmit}
-        className="w-full max-w-sm flex flex-col gap-4 border border-black/10 dark:border-white/15 rounded-lg p-6"
+        className="w-full max-w-sm flex flex-col gap-4 border border-borda bg-superficie rounded-2xl p-8"
       >
+        <Image src="/logo.png" alt="GV Barbearia" width={120} height={120} priority className="mx-auto" />
         <h1 className="text-lg font-semibold text-center mb-2">Criar nova senha</h1>
 
         {!token && (
@@ -92,7 +94,7 @@ function RedefinirSenhaForm() {
             <button
               type="submit"
               disabled={salvando}
-              className="rounded bg-foreground text-background px-4 py-2 text-sm font-medium disabled:opacity-50"
+              className="rounded bg-copper text-copper-ink hover:brightness-110 px-4 py-2 text-sm font-medium disabled:opacity-50"
             >
               {salvando ? 'Salvando...' : 'Redefinir senha'}
             </button>

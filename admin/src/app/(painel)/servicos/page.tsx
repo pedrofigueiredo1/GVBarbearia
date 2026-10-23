@@ -72,7 +72,7 @@ export default function ServicosPage() {
         <h2 className="text-2xl font-semibold">Serviços</h2>
         <button
           onClick={() => setModal({ aberto: true, servico: null })}
-          className="rounded bg-foreground text-background px-4 py-2 text-sm font-medium"
+          className="rounded bg-copper text-copper-ink hover:brightness-110 px-4 py-2 text-sm font-medium"
         >
           + Novo serviço
         </button>
