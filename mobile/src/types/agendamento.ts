@@ -22,3 +22,15 @@ export interface NovoAgendamentoInput {
   profissionalId: number;
   dataHora: string;
 }
+
+// Um horário livre: `hora` ('09:30') é para mostrar e `dataHora` (ISO) é o que
+// vai no agendamento. As horas são as de Brasília, as mesmas da barbearia.
+export interface HorarioDisponivel {
+  hora: string;
+  dataHora: string;
+}
+
+export interface HorariosDisponiveis {
+  data: string;
+  horarios: HorarioDisponivel[];
+}

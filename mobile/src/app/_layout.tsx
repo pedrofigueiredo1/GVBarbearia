@@ -2,6 +2,7 @@ import { ActivityIndicator, View } from 'react-native';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { AuthProvider, useAuth } from '@/context/AuthContext';
+import { cores } from '@/tema';
 
 // ===== ROTAS PROTEGIDAS =====
 // Ctrl+F "ROTAS PROTEGIDAS" para achar este bloco.
@@ -13,8 +14,10 @@ function Rotas() {
 
   if (carregando) {
     return (
-      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-        <ActivityIndicator size="large" />
+      <View
+        style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.fundo }}
+      >
+        <ActivityIndicator size="large" color={cores.cobre} />
       </View>
     );
   }
@@ -23,8 +26,8 @@ function Rotas() {
 
   return (
     <>
-      <StatusBar style="auto" />
-      <Stack screenOptions={{ headerShown: false }}>
+      <StatusBar style="light" />
+      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: cores.fundo } }}>
         <Stack.Protected guard={!logado}>
           <Stack.Screen name="(auth)" />
         </Stack.Protected>

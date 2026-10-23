@@ -1,5 +1,6 @@
 import { ReactNode } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
+import { cores, raio } from '@/tema';
 
 interface Props {
   titulo: string;
@@ -15,7 +16,9 @@ export function Cartao({ titulo, destaque, corDestaque, children }: Props) {
     <View style={styles.cartao}>
       <View style={styles.cabecalho}>
         <Text style={styles.titulo}>{titulo}</Text>
-        {destaque ? <Text style={[styles.destaque, corDestaque ? { color: corDestaque } : null]}>{destaque}</Text> : null}
+        {destaque ? (
+          <Text style={[styles.destaque, corDestaque ? { color: corDestaque } : null]}>{destaque}</Text>
+        ) : null}
       </View>
       {children}
     </View>
@@ -27,9 +30,16 @@ export function TextoCartao({ children }: { children: ReactNode }) {
 }
 
 const styles = StyleSheet.create({
-  cartao: { borderWidth: 1, borderColor: '#ddd', borderRadius: 8, padding: 14, gap: 6, backgroundColor: '#fff' },
+  cartao: {
+    borderWidth: 1,
+    borderColor: cores.borda,
+    borderRadius: raio.medio,
+    padding: 14,
+    gap: 6,
+    backgroundColor: cores.superficie,
+  },
   cabecalho: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 },
-  titulo: { fontSize: 17, fontWeight: '600', flexShrink: 1 },
-  destaque: { fontSize: 16, fontWeight: '600' },
-  texto: { color: '#444' },
+  titulo: { fontSize: 16, fontWeight: '700', flexShrink: 1, color: cores.texto },
+  destaque: { fontSize: 15, fontWeight: '700', color: cores.cobre },
+  texto: { color: cores.textoSecundario, lineHeight: 20 },
 });

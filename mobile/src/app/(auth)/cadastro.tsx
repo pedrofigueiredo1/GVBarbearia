@@ -1,9 +1,12 @@
 import { useState } from 'react';
-import { StyleSheet, Text } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { Link } from 'expo-router';
+import { Aviso } from '@/components/Aviso';
 import { Botao } from '@/components/Botao';
+import { CabecalhoMarca } from '@/components/CabecalhoMarca';
 import { CampoTexto } from '@/components/CampoTexto';
 import { Tela } from '@/components/Tela';
+import { cores } from '@/tema';
 import { useAuth } from '@/context/AuthContext';
 import { ApiError } from '@/lib/api';
 import { loginCliente } from '@/lib/auth-cliente';
@@ -62,7 +65,7 @@ export default function CadastroScreen() {
 
   return (
     <Tela>
-      <Text style={styles.titulo}>Criar conta</Text>
+      <CabecalhoMarca titulo="Criar conta" subtitulo="Cadastre-se para agendar seus horários" />
 
       <CampoTexto rotulo="Nome" value={nome} onChangeText={setNome} maxLength={100} autoComplete="name" />
       <CampoTexto
@@ -98,7 +101,7 @@ export default function CadastroScreen() {
         maxLength={72}
       />
 
-      {erro && <Text style={styles.erro}>{erro}</Text>}
+      {erro && <Aviso tipo="erro" texto={erro} />}
 
       <Botao titulo="Cadastrar" onPress={handleCadastrar} carregando={salvando} />
 
@@ -110,7 +113,5 @@ export default function CadastroScreen() {
 }
 
 const styles = StyleSheet.create({
-  titulo: { fontSize: 24, fontWeight: '700', textAlign: 'center', marginBottom: 8 },
-  erro: { color: '#c00' },
-  link: { textAlign: 'center', textDecorationLine: 'underline', paddingVertical: 4 },
+  link: { textAlign: 'center', color: cores.cobre, fontWeight: '600', paddingVertical: 6 },
 });

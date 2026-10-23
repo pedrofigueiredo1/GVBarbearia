@@ -1,6 +1,7 @@
 import { ReactNode } from 'react';
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { cores } from '@/tema';
 
 // Moldura padrão das telas de formulário: respeita a área segura do celular,
 // rola quando o teclado ocupa a tela e mantém os toques nos botões.
@@ -23,6 +24,6 @@ export function Tela({ children }: { children: ReactNode }) {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#fff' },
+  safe: { flex: 1, backgroundColor: cores.fundo },
   conteudo: { flexGrow: 1, justifyContent: 'center', padding: 24, gap: 14 },
 });

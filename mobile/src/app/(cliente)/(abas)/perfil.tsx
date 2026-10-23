@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import { Aviso } from '@/components/Aviso';
+import { Avatar } from '@/components/Avatar';
 import { Botao } from '@/components/Botao';
 import { CampoTexto } from '@/components/CampoTexto';
 import { Tela } from '@/components/Tela';
@@ -7,6 +9,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useCarregar } from '@/hooks/useCarregar';
 import { ApiError } from '@/lib/api';
 import { consultarPerfil, editarPerfil } from '@/lib/clientes';
+import { cores } from '@/tema';
 import type { EditarPerfilInput, Perfil } from '@/types/cliente';
 
 const EMAIL_VALIDO = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -20,7 +23,7 @@ export default function PerfilScreen() {
   if (carregando && dados === null) {
     return (
       <View style={styles.centro}>
-        <ActivityIndicator size="large" />
+        <ActivityIndicator size="large" color={cores.cobre} />
       </View>
     );
   }
@@ -38,7 +41,7 @@ export default function PerfilScreen() {
 }
 
 function FormularioPerfil({ perfilInicial }: { perfilInicial: Perfil }) {
-  const { atualizarCliente } = useAuth();
+  const { atualizarCliente, sair } = useAuth();
   const [salvo, setSalvo] = useState(perfilInicial);
   const [nome, setNome] = useState(perfilInicial.nome);
   const [email, setEmail] = useState(perfilInicial.email);
@@ -107,7 +110,11 @@ function FormularioPerfil({ perfilInicial }: { perfilInicial: Perfil }) {
 
   return (
     <Tela>
-      <Text style={styles.titulo}>Meus dados</Text>
+      <View style={styles.topo}>
+        <Avatar nome={salvo.nome} tamanho={84} />
+        <Text style={styles.titulo}>{salvo.nome}</Text>
+        <Text style={styles.email}>{salvo.email}</Text>
+      </View>
 
       <CampoTexto rotulo="Nome" value={nome} onChangeText={setNome} maxLength={100} />
       <CampoTexto
@@ -154,19 +161,32 @@ function FormularioPerfil({ perfilInicial }: { perfilInicial: Perfil }) {
         maxLength={72}
       />
 
-      {erro && <Text style={styles.erro}>{erro}</Text>}
-      {mensagem && <Text style={styles.sucesso}>{mensagem}</Text>}
+      {erro && <Aviso tipo="erro" texto={erro} />}
+      {mensagem && <Aviso tipo="sucesso" texto={mensagem} />}
 
       <Botao titulo="Salvar alterações" onPress={handleSalvar} carregando={salvando} />
+
+      <View style={styles.sair}>
+        <Botao titulo="Sair" secundario onPress={sair} />
+      </View>
     </Tela>
   );
 }
 
 const styles = StyleSheet.create({
-  centro: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, gap: 12 },
-  titulo: { fontSize: 22, fontWeight: '700', textAlign: 'center' },
-  secao: { fontSize: 16, fontWeight: '700', marginTop: 8 },
-  dica: { color: '#555' },
-  erro: { color: '#c00' },
-  sucesso: { color: '#0a6b2d' },
+  centro: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 24,
+    gap: 12,
+    backgroundColor: cores.fundo,
+  },
+  topo: { alignItems: 'center', gap: 6, marginBottom: 8 },
+  titulo: { fontSize: 22, fontWeight: '800', textAlign: 'center', color: cores.texto },
+  email: { color: cores.textoSecundario },
+  secao: { fontSize: 16, fontWeight: '700', marginTop: 8, color: cores.texto },
+  dica: { color: cores.textoSecundario, lineHeight: 20 },
+  erro: { color: cores.erro, textAlign: 'center' },
+  sair: { marginTop: 12 },
 });

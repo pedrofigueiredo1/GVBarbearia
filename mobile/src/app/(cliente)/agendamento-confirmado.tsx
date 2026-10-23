@@ -1,8 +1,11 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
+import { Aviso } from '@/components/Aviso';
 import { Botao } from '@/components/Botao';
 import { Cartao, TextoCartao } from '@/components/Cartao';
 import { formatarData, formatarDuracao, formatarHora, formatarMoeda } from '@/lib/formatar';
+import { cores } from '@/tema';
 import { STATUS_LABEL, type Agendamento } from '@/types/agendamento';
 
 // US Confirmação de Agendamento (item 2.50): mostra os dados do agendamento
@@ -21,14 +24,17 @@ export default function AgendamentoConfirmadoScreen() {
   if (!agendamento) {
     return (
       <View style={styles.centro}>
-        <Text style={styles.erro}>Não foi possível exibir os dados do agendamento.</Text>
+        <Aviso tipo="erro" texto="Não foi possível exibir os dados do agendamento." />
         <Botao titulo="Voltar para o início" onPress={() => router.replace('/')} />
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <ScrollView contentContainerStyle={styles.container}>
+      <View style={styles.selo}>
+        <Ionicons name="checkmark" size={44} color={cores.sobreCobre} />
+      </View>
       <Text style={styles.titulo}>Agendamento realizado!</Text>
       <Text style={styles.aviso}>
         Seu horário foi reservado e está aguardando a confirmação da barbearia.
@@ -44,14 +50,29 @@ export default function AgendamentoConfirmadoScreen() {
 
       <Botao titulo="Ver meus agendamentos" onPress={() => router.replace('/meus-agendamentos')} />
       <Botao titulo="Voltar para o início" secundario onPress={() => router.replace('/')} />
-    </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20, gap: 14, justifyContent: 'center' },
-  centro: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, gap: 12 },
-  titulo: { fontSize: 24, fontWeight: '700', textAlign: 'center' },
-  aviso: { textAlign: 'center', color: '#555' },
-  erro: { color: '#c00', textAlign: 'center' },
+  container: { flexGrow: 1, padding: 20, gap: 14, justifyContent: 'center' },
+  centro: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 24,
+    gap: 12,
+    backgroundColor: cores.fundo,
+  },
+  selo: {
+    alignSelf: 'center',
+    width: 84,
+    height: 84,
+    borderRadius: 42,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: cores.cobre,
+  },
+  titulo: { fontSize: 24, fontWeight: '800', textAlign: 'center', color: cores.texto },
+  aviso: { textAlign: 'center', color: cores.textoSecundario, lineHeight: 21 },
 });

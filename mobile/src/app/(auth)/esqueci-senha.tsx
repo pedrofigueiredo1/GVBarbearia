@@ -1,9 +1,12 @@
 import { useState } from 'react';
-import { StyleSheet, Text } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { Link, router } from 'expo-router';
+import { Aviso } from '@/components/Aviso';
 import { Botao } from '@/components/Botao';
+import { CabecalhoMarca } from '@/components/CabecalhoMarca';
 import { CampoTexto } from '@/components/CampoTexto';
 import { Tela } from '@/components/Tela';
+import { cores } from '@/tema';
 import { ApiError } from '@/lib/api';
 import { solicitarRecuperacaoSenha } from '@/lib/auth-cliente';
 
@@ -39,10 +42,10 @@ export default function EsqueciSenhaScreen() {
 
   return (
     <Tela>
-      <Text style={styles.titulo}>Recuperar senha</Text>
-      <Text style={styles.texto}>
-        Informe o e-mail cadastrado. Enviaremos um código de 6 dígitos, válido por 15 minutos.
-      </Text>
+      <CabecalhoMarca
+        titulo="Recuperar senha"
+        subtitulo="Informe o e-mail cadastrado. Enviaremos um código de 6 dígitos, válido por 15 minutos."
+      />
 
       <CampoTexto
         rotulo="E-mail"
@@ -53,8 +56,8 @@ export default function EsqueciSenhaScreen() {
         autoComplete="email"
       />
 
-      {erro && <Text style={styles.erro}>{erro}</Text>}
-      {mensagem && <Text style={styles.sucesso}>{mensagem}</Text>}
+      {erro && <Aviso tipo="erro" texto={erro} />}
+      {mensagem && <Aviso tipo="sucesso" texto={mensagem} />}
 
       <Botao titulo="Enviar código" onPress={handleEnviar} carregando={enviando} />
 
@@ -74,9 +77,5 @@ export default function EsqueciSenhaScreen() {
 }
 
 const styles = StyleSheet.create({
-  titulo: { fontSize: 24, fontWeight: '700', textAlign: 'center' },
-  texto: { textAlign: 'center', color: '#555' },
-  erro: { color: '#c00' },
-  sucesso: { color: '#0a6b2d' },
-  link: { textAlign: 'center', textDecorationLine: 'underline', paddingVertical: 4 },
+  link: { textAlign: 'center', color: cores.cobre, fontWeight: '600', paddingVertical: 6 },
 });

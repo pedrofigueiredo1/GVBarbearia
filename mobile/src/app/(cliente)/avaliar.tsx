@@ -1,11 +1,14 @@
 import { useState } from 'react';
 import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
+import { Aviso } from '@/components/Aviso';
 import { Botao } from '@/components/Botao';
 import { CampoTexto } from '@/components/CampoTexto';
 import { Tela } from '@/components/Tela';
 import { ApiError } from '@/lib/api';
 import { adicionarAvaliacao } from '@/lib/avaliacoes';
+import { cores } from '@/tema';
 
 const NOTAS = [1, 2, 3, 4, 5];
 
@@ -66,7 +69,11 @@ export default function AvaliarScreen() {
             onPress={() => setNota(valor)}
             hitSlop={6}
           >
-            <Text style={styles.estrela}>{valor <= nota ? '★' : '☆'}</Text>
+            <Ionicons
+              name={valor <= nota ? 'star' : 'star-outline'}
+              size={46}
+              color={valor <= nota ? cores.cobre : cores.borda}
+            />
           </Pressable>
         ))}
       </View>
@@ -83,7 +90,7 @@ export default function AvaliarScreen() {
         style={styles.comentario}
       />
 
-      {erro && <Text style={styles.erro}>{erro}</Text>}
+      {erro && <Aviso tipo="erro" texto={erro} />}
 
       <Botao titulo="Enviar avaliação" onPress={handleEnviar} carregando={enviando} />
     </Tela>
@@ -91,11 +98,9 @@ export default function AvaliarScreen() {
 }
 
 const styles = StyleSheet.create({
-  titulo: { fontSize: 22, fontWeight: '700', textAlign: 'center' },
-  resumo: { textAlign: 'center', color: '#555' },
-  estrelas: { flexDirection: 'row', justifyContent: 'center', gap: 8, marginTop: 8 },
-  estrela: { fontSize: 44, color: '#d4a017' },
-  legenda: { textAlign: 'center', color: '#555' },
+  titulo: { fontSize: 22, fontWeight: '800', textAlign: 'center', color: cores.texto },
+  resumo: { textAlign: 'center', color: cores.textoSecundario },
+  estrelas: { flexDirection: 'row', justifyContent: 'center', gap: 6, marginTop: 8 },
+  legenda: { textAlign: 'center', color: cores.textoSecundario },
   comentario: { minHeight: 110 },
-  erro: { color: '#c00' },
 });

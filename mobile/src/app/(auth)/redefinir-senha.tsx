@@ -1,9 +1,12 @@
 import { useState } from 'react';
-import { StyleSheet, Text } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { Link, router, useLocalSearchParams } from 'expo-router';
+import { Aviso } from '@/components/Aviso';
 import { Botao } from '@/components/Botao';
+import { CabecalhoMarca } from '@/components/CabecalhoMarca';
 import { CampoTexto } from '@/components/CampoTexto';
 import { Tela } from '@/components/Tela';
+import { cores } from '@/tema';
 import { ApiError } from '@/lib/api';
 import { redefinirSenha } from '@/lib/auth-cliente';
 
@@ -50,8 +53,8 @@ export default function RedefinirSenhaScreen() {
   if (mensagem) {
     return (
       <Tela>
-        <Text style={styles.titulo}>Senha redefinida</Text>
-        <Text style={styles.sucesso}>{mensagem}</Text>
+        <CabecalhoMarca titulo="Senha redefinida" />
+        <Aviso tipo="sucesso" texto={mensagem} />
         <Botao titulo="Ir para o login" onPress={() => router.replace('/login')} />
       </Tela>
     );
@@ -59,7 +62,7 @@ export default function RedefinirSenhaScreen() {
 
   return (
     <Tela>
-      <Text style={styles.titulo}>Criar nova senha</Text>
+      <CabecalhoMarca titulo="Criar nova senha" subtitulo="Digite o código que enviamos e escolha a nova senha." />
 
       <CampoTexto
         rotulo="E-mail"
@@ -92,7 +95,7 @@ export default function RedefinirSenhaScreen() {
         maxLength={72}
       />
 
-      {erro && <Text style={styles.erro}>{erro}</Text>}
+      {erro && <Aviso tipo="erro" texto={erro} />}
 
       <Botao titulo="Redefinir senha" onPress={handleRedefinir} carregando={salvando} />
 
@@ -104,8 +107,5 @@ export default function RedefinirSenhaScreen() {
 }
 
 const styles = StyleSheet.create({
-  titulo: { fontSize: 24, fontWeight: '700', textAlign: 'center', marginBottom: 8 },
-  erro: { color: '#c00' },
-  sucesso: { color: '#0a6b2d', textAlign: 'center' },
-  link: { textAlign: 'center', textDecorationLine: 'underline', paddingVertical: 4 },
+  link: { textAlign: 'center', color: cores.cobre, fontWeight: '600', paddingVertical: 6 },
 });

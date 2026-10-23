@@ -1,27 +1,50 @@
 import { ActivityIndicator, Pressable, StyleSheet, Text } from 'react-native';
+import { cores, raio } from '@/tema';
 
 interface Props {
   titulo: string;
   onPress: () => void;
   carregando?: boolean;
   secundario?: boolean;
+  // Versão menor, para botões dentro de listas (ex.: "Agendar" em cada serviço).
+  compacto?: boolean;
 }
 
-// Botão padrão do app. Enquanto `carregando`, fica desabilitado e mostra o
-// indicador, evitando envios duplicados do formulário.
-export function Botao({ titulo, onPress, carregando = false, secundario = false }: Props) {
+// Botão padrão do app. O primário é cobre, o secundário só tem contorno.
+// Enquanto `carregando`, fica desabilitado e mostra o indicador, evitando
+// envios duplicados do formulário.
+export function Botao({
+  titulo,
+  onPress,
+  carregando = false,
+  secundario = false,
+  compacto = false,
+}: Props) {
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={titulo}
       onPress={onPress}
       disabled={carregando}
-      style={[styles.botao, secundario && styles.secundario, carregando && styles.desabilitado]}
+      style={({ pressed }) => [
+        styles.botao,
+        compacto && styles.compacto,
+        secundario && styles.secundario,
+        (carregando || pressed) && styles.desabilitado,
+      ]}
     >
       {carregando ? (
-        <ActivityIndicator color={secundario ? '#222' : '#fff'} />
+        <ActivityIndicator color={secundario ? cores.cobre : cores.sobreCobre} />
       ) : (
-        <Text style={[styles.texto, secundario && styles.textoSecundario]}>{titulo}</Text>
+        <Text
+          style={[
+            styles.texto,
+            compacto && styles.textoCompacto,
+            secundario && styles.textoSecundario,
+          ]}
+        >
+          {titulo}
+        </Text>
       )}
     </Pressable>
   );
@@ -29,15 +52,19 @@ export function Botao({ titulo, onPress, carregando = false, secundario = false 
 
 const styles = StyleSheet.create({
   botao: {
-    backgroundColor: '#222',
-    borderRadius: 6,
-    paddingVertical: 12,
+    backgroundColor: cores.cobre,
+    borderRadius: raio.medio,
+    paddingVertical: 14,
+    paddingHorizontal: 20,
     alignItems: 'center',
+    justifyContent: 'center',
     borderWidth: 1,
-    borderColor: '#222',
+    borderColor: cores.cobre,
   },
-  secundario: { backgroundColor: '#fff' },
+  compacto: { paddingVertical: 8, paddingHorizontal: 16, borderRadius: raio.pequeno },
+  secundario: { backgroundColor: 'transparent', borderColor: cores.borda },
   desabilitado: { opacity: 0.6 },
-  texto: { color: '#fff', fontSize: 16, fontWeight: '600' },
-  textoSecundario: { color: '#222' },
+  texto: { color: cores.sobreCobre, fontSize: 16, fontWeight: '700' },
+  textoCompacto: { fontSize: 14 },
+  textoSecundario: { color: cores.texto },
 });

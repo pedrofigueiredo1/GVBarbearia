@@ -1,12 +1,14 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, RefreshControl, SectionList, StyleSheet, Text, View } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
+import { Aviso } from '@/components/Aviso';
 import { Botao } from '@/components/Botao';
 import { Cartao, TextoCartao } from '@/components/Cartao';
 import { useCarregar } from '@/hooks/useCarregar';
 import { ApiError } from '@/lib/api';
 import { cancelarAgendamento, listarAgendamentos } from '@/lib/agendamentos';
 import { formatarData, formatarEstrelas, formatarHora, formatarMoeda } from '@/lib/formatar';
+import { cores } from '@/tema';
 import { STATUS_LABEL, type Agendamento, type StatusAgendamento } from '@/types/agendamento';
 
 // US Cancelamento de Agendamento pelo Cliente (item 2.53): só com no mínimo
@@ -15,10 +17,10 @@ import { STATUS_LABEL, type Agendamento, type StatusAgendamento } from '@/types/
 const ANTECEDENCIA_MINIMA_MS = 2 * 60 * 60 * 1000;
 
 const COR_STATUS: Record<StatusAgendamento, string> = {
-  PENDENTE: '#9a6700',
-  CONFIRMADO: '#0a6b2d',
-  CONCLUIDO: '#444',
-  CANCELADO: '#b00020',
+  PENDENTE: cores.aviso,
+  CONFIRMADO: cores.sucesso,
+  CONCLUIDO: cores.textoSecundario,
+  CANCELADO: cores.erro,
 };
 
 const STATUS_ATIVOS: StatusAgendamento[] = ['PENDENTE', 'CONFIRMADO'];
@@ -92,7 +94,7 @@ export default function MeusAgendamentosScreen() {
   if (carregando && dados === null) {
     return (
       <View style={styles.centro}>
-        <ActivityIndicator size="large" />
+        <ActivityIndicator size="large" color={cores.cobre} />
       </View>
     );
   }
@@ -111,17 +113,27 @@ export default function MeusAgendamentosScreen() {
       sections={secoes}
       keyExtractor={(agendamento) => String(agendamento.id)}
       contentContainerStyle={styles.lista}
-      refreshControl={<RefreshControl refreshing={carregando} onRefresh={recarregar} />}
+      refreshControl={
+        <RefreshControl
+          refreshing={carregando}
+          onRefresh={recarregar}
+          tintColor={cores.cobre}
+          colors={[cores.cobre]}
+          progressBackgroundColor={cores.superficieAlta}
+        />
+      }
       stickySectionHeadersEnabled={false}
       ListHeaderComponent={
         mensagem ? (
-          <Text style={mensagem.tipo === 'sucesso' ? styles.sucesso : styles.erro}>{mensagem.texto}</Text>
+          <View style={styles.mensagem}>
+            <Aviso tipo={mensagem.tipo} texto={mensagem.texto} />
+          </View>
         ) : null
       }
       ListEmptyComponent={
         <View style={styles.vazio}>
           <Text style={styles.textoVazio}>Você ainda não tem agendamentos.</Text>
-          <Botao titulo="Agendar horário" onPress={() => router.push('/agendar')} />
+          <Botao titulo="Ver serviços" onPress={() => router.push('/')} />
         </View>
       }
       renderSectionHeader={({ section }) => <Text style={styles.secao}>{section.titulo}</Text>}
@@ -184,14 +196,21 @@ export default function MeusAgendamentosScreen() {
 }
 
 const styles = StyleSheet.create({
-  centro: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, gap: 12 },
+  centro: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 24,
+    gap: 12,
+    backgroundColor: cores.fundo,
+  },
   lista: { padding: 16, gap: 4 },
-  secao: { fontSize: 18, fontWeight: '700', marginTop: 12, marginBottom: 8 },
+  secao: { fontSize: 18, fontWeight: '800', marginTop: 12, marginBottom: 8, color: cores.texto },
   item: { marginBottom: 12 },
   acao: { marginTop: 8 },
-  prazo: { marginTop: 4, color: '#666', fontStyle: 'italic' },
+  prazo: { marginTop: 4, color: cores.textoSecundario, fontStyle: 'italic' },
   vazio: { alignItems: 'center', gap: 12, marginTop: 32 },
-  textoVazio: { color: '#555' },
-  erro: { color: '#c00', textAlign: 'center', marginBottom: 8 },
-  sucesso: { color: '#0a6b2d', marginBottom: 8 },
+  textoVazio: { color: cores.textoSecundario },
+  erro: { color: cores.erro, textAlign: 'center', marginBottom: 8 },
+  mensagem: { marginBottom: 8 },
 });
