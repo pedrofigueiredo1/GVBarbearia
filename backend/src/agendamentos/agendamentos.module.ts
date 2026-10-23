@@ -4,6 +4,7 @@ import { AgendamentosClienteController } from './agendamentos-cliente.controller
 import { AdicionarAgendamento } from './operacoes/adicionar-agendamento';
 import { AdicionarAgendamentoCliente } from './operacoes/adicionar-agendamento-cliente';
 import { CancelarAgendamentoCliente } from './operacoes/cancelar-agendamento-cliente';
+import { ConsultarHorariosDisponiveis } from './operacoes/consultar-horarios-disponiveis';
 import { ListarAgendamentosCliente } from './operacoes/listar-agendamentos-cliente';
 import { ListarAgendamentos } from './operacoes/listar-agendamentos';
 import { BuscarAgendamento } from './operacoes/buscar-agendamento';
@@ -21,6 +22,7 @@ import {
     AdicionarAgendamentoCliente,
     ListarAgendamentosCliente,
     CancelarAgendamentoCliente,
+    ConsultarHorariosDisponiveis,
     ListarAgendamentos,
     BuscarAgendamento,
     EditarAgendamento,
