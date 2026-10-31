@@ -18,7 +18,9 @@ export function tratarLoginDuplicado(error: unknown) {
     error instanceof Prisma.PrismaClientKnownRequestError &&
     error.code === 'P2002'
   ) {
-    return new ConflictException('Este login já está em uso por outro administrador.');
+    return new ConflictException(
+      'Este login já está em uso por outro administrador.',
+    );
   }
   return error;
 }

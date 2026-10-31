@@ -12,6 +12,7 @@ import {
   INCLUDE_RELACOES,
   ValidarHorarioDisponivel,
   ValidarReferenciasAgendamento,
+  traduzirConflitoDeHorario,
 } from './compartilhado';
 
 @Injectable()
@@ -23,18 +24,30 @@ export class AdicionarAgendamento {
   ) {}
 
   async executar(dto: CreateAgendamentoDto) {
-    await this.validarReferencias.executar(dto.clienteId, dto.servicoId, dto.profissionalId);
-    await this.validarHorarioDisponivel.executar(dto.profissionalId, dto.dataHora);
+    await this.validarReferencias.executar(
+      dto.clienteId,
+      dto.servicoId,
+      dto.profissionalId,
+    );
+    await this.validarHorarioDisponivel.executar(
+      dto.profissionalId,
+      dto.dataHora,
+    );
 
-    return this.prisma.agendamento.create({
-      data: {
-        clienteId: dto.clienteId,
-        servicoId: dto.servicoId,
-        profissionalId: dto.profissionalId,
-        dataHora: new Date(dto.dataHora),
-        status: StatusAgendamento.CONFIRMADO,
-      },
-      include: INCLUDE_RELACOES,
-    });
+    try {
+      return await this.prisma.agendamento.create({
+        data: {
+          clienteId: dto.clienteId,
+          servicoId: dto.servicoId,
+          profissionalId: dto.profissionalId,
+          dataHora: new Date(dto.dataHora),
+          status: StatusAgendamento.CONFIRMADO,
+        },
+        include: INCLUDE_RELACOES,
+      });
+    } catch (error) {
+      // Duas pessoas no mesmo horário ao mesmo tempo: o índice do banco barra.
+      throw traduzirConflitoDeHorario(error);
+    }
   }
 }

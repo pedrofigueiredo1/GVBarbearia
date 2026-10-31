@@ -13,16 +13,73 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { StatusAgendamento } from '@prisma/client';
+import { Prisma, StatusAgendamento } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { ConsultarHorariosDisponiveisDto } from '../dto/consultar-horarios-disponiveis.dto';
 import {
+  HORIZONTE_DIAS,
   dataEHoraLocais,
   horariosDoDia,
   limitesDoDia,
+  ultimaDataAgendavel,
 } from '../horario-atendimento';
 
 const MS_POR_MINUTO = 60_000;
+
+// Aceita o PrismaService e também o cliente de uma transação, para a mesma
+// conta servir na consulta e dentro da trava do agendamento.
+type Banco = Pick<Prisma.TransactionClient, 'agendamento'>;
+
+// Horários livres de um dia para um serviço e um profissional (já com a grade da
+// barbearia, a antecedência e os atendimentos existentes descontados).
+export async function calcularHorariosLivres(
+  banco: Banco,
+  params: {
+    clienteId: number;
+    profissionalId: number;
+    duracaoMinutos: number;
+    data: string;
+  },
+) {
+  const { inicio, fim } = limitesDoDia(params.data);
+  const ocupados = await banco.agendamento.findMany({
+    where: {
+      dataHora: { gte: inicio, lt: fim },
+      status: { not: StatusAgendamento.CANCELADO },
+      OR: [
+        { profissionalId: params.profissionalId },
+        { clienteId: params.clienteId },
+      ],
+    },
+    select: { dataHora: true, servico: { select: { duracaoMinutos: true } } },
+  });
+  const intervalos = ocupados.map((a) => ({
+    inicio: a.dataHora.getTime(),
+    fim: a.dataHora.getTime() + a.servico.duracaoMinutos * MS_POR_MINUTO,
+  }));
+
+  const agora = Date.now();
+  return horariosDoDia(params.data, params.duracaoMinutos)
+    .filter((comeco) => {
+      const inicioNovo = comeco.getTime();
+      const fimNovo = inicioNovo + params.duracaoMinutos * MS_POR_MINUTO;
+      if (inicioNovo <= agora) return false;
+      return !intervalos.some((o) => inicioNovo < o.fim && o.inicio < fimNovo);
+    })
+    .map((comeco) => ({
+      hora: dataEHoraLocais(comeco).hora,
+      dataHora: comeco.toISOString(),
+    }));
+}
+
+// Só se agenda até HORIZONTE_DIAS dias à frente.
+export function garantirDentroDoHorizonte(data: string) {
+  if (data > ultimaDataAgendavel()) {
+    throw new BadRequestException(
+      `Só é possível agendar com até ${HORIZONTE_DIAS} dias de antecedência.`,
+    );
+  }
+}
 
 @Injectable()
 export class ConsultarHorariosDisponiveis {
@@ -37,6 +94,7 @@ export class ConsultarHorariosDisponiveis {
     ) {
       throw new BadRequestException('Informe uma data válida.');
     }
+    garantirDentroDoHorizonte(dto.data);
 
     const [servico, profissional] = await Promise.all([
       this.prisma.servico.findUnique({ where: { id: dto.servicoId } }),
@@ -55,34 +113,12 @@ export class ConsultarHorariosDisponiveis {
       );
     }
 
-    const { inicio, fim } = limitesDoDia(dto.data);
-    const ocupados = await this.prisma.agendamento.findMany({
-      where: {
-        dataHora: { gte: inicio, lt: fim },
-        status: { not: StatusAgendamento.CANCELADO },
-        OR: [{ profissionalId: dto.profissionalId }, { clienteId }],
-      },
-      select: { dataHora: true, servico: { select: { duracaoMinutos: true } } },
+    const horarios = await calcularHorariosLivres(this.prisma, {
+      clienteId,
+      profissionalId: dto.profissionalId,
+      duracaoMinutos: servico.duracaoMinutos,
+      data: dto.data,
     });
-    const intervalos = ocupados.map((a) => ({
-      inicio: a.dataHora.getTime(),
-      fim: a.dataHora.getTime() + a.servico.duracaoMinutos * MS_POR_MINUTO,
-    }));
-
-    const agora = Date.now();
-    const horarios = horariosDoDia(dto.data, servico.duracaoMinutos)
-      .filter((comeco) => {
-        const inicioNovo = comeco.getTime();
-        const fimNovo = inicioNovo + servico.duracaoMinutos * MS_POR_MINUTO;
-        if (inicioNovo <= agora) return false;
-        return !intervalos.some(
-          (o) => inicioNovo < o.fim && o.inicio < fimNovo,
-        );
-      })
-      .map((comeco) => ({
-        hora: dataEHoraLocais(comeco).hora,
-        dataHora: comeco.toISOString(),
-      }));
 
     return { data: dto.data, horarios };
   }

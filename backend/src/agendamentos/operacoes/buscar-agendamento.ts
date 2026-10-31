@@ -17,7 +17,9 @@ export class BuscarAgendamento {
     });
 
     if (!agendamento) {
-      throw new NotFoundException(`Agendamento com id ${id} não foi encontrado.`);
+      throw new NotFoundException(
+        `Agendamento com id ${id} não foi encontrado.`,
+      );
     }
 
     return agendamento;

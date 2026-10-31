@@ -4,9 +4,9 @@ import {
   Delete,
   Get,
   Param,
-  ParseIntPipe,
   Patch,
   Post,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -17,6 +17,7 @@ import { ListarAdministradores } from './operacoes/listar-administradores';
 import { BuscarAdministrador } from './operacoes/buscar-administrador';
 import { EditarAdministrador } from './operacoes/editar-administrador';
 import { ExcluirAdministrador } from './operacoes/excluir-administrador';
+import { IdPipe } from '../comum/pipes/id.pipe';
 
 // Todas as rotas exigem administrador autenticado, conforme as Regras de
 // Negócio de cada US (Cadastro/Consulta/Edição/Exclusão de Administrador).
@@ -45,22 +46,22 @@ export class AdministradoresController {
 
   // ===== BUSCAR ADMINISTRADOR POR ID =====
   @Get(':id')
-  findOne(@Param('id', ParseIntPipe) id: number) {
+  findOne(@Param('id', IdPipe) id: number) {
     return this.buscarAdministrador.executar(id);
   }
 
   // ===== EDITAR ADMINISTRADOR =====
   @Patch(':id')
-  update(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() dto: UpdateAdministradorDto,
-  ) {
+  update(@Param('id', IdPipe) id: number, @Body() dto: UpdateAdministradorDto) {
     return this.editarAdministrador.executar(id, dto);
   }
 
   // ===== EXCLUIR ADMINISTRADOR =====
   @Delete(':id')
-  remove(@Param('id', ParseIntPipe) id: number) {
-    return this.excluirAdministrador.executar(id);
+  remove(
+    @Param('id', IdPipe) id: number,
+    @Req() req: { user: { id: number } },
+  ) {
+    return this.excluirAdministrador.executar(id, req.user.id);
   }
 }

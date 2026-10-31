@@ -4,7 +4,6 @@ import {
   Delete,
   Get,
   Param,
-  ParseIntPipe,
   Patch,
   UseGuards,
 } from '@nestjs/common';
@@ -14,6 +13,7 @@ import { ListarAvaliacoes } from './operacoes/listar-avaliacoes';
 import { BuscarAvaliacao } from './operacoes/buscar-avaliacao';
 import { EditarAvaliacao } from './operacoes/editar-avaliacao';
 import { ExcluirAvaliacao } from './operacoes/excluir-avaliacao';
+import { IdPipe } from '../comum/pipes/id.pipe';
 
 // Sem rota de criação: o Cadastro de Avaliação é feito pelo próprio cliente
 // no app (fase posterior). Aqui só entram as US do painel administrativo.
@@ -35,14 +35,14 @@ export class AvaliacoesController {
 
   // ===== BUSCAR AVALIACAO POR ID =====
   @Get(':id')
-  findOne(@Param('id', ParseIntPipe) id: number) {
+  findOne(@Param('id', IdPipe) id: number) {
     return this.buscarAvaliacao.executar(id);
   }
 
   // ===== EDITAR AVALIACAO =====
   @Patch(':id')
   update(
-    @Param('id', ParseIntPipe) id: number,
+    @Param('id', IdPipe) id: number,
     @Body() dto: UpdateAvaliacaoDto,
   ) {
     return this.editarAvaliacao.executar(id, dto);
@@ -50,7 +50,7 @@ export class AvaliacoesController {
 
   // ===== EXCLUIR AVALIACAO =====
   @Delete(':id')
-  remove(@Param('id', ParseIntPipe) id: number) {
+  remove(@Param('id', IdPipe) id: number) {
     return this.excluirAvaliacao.executar(id);
   }
 }

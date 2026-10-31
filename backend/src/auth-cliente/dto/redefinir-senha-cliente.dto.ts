@@ -5,8 +5,10 @@ import {
   MaxLength,
   MinLength,
 } from 'class-validator';
+import { EmailNormalizado } from '../../comum/decorators/transformacoes';
 
 export class RedefinirSenhaClienteDto {
+  @EmailNormalizado()
   @IsEmail({}, { message: 'Informe um e-mail válido.' })
   email: string;
 

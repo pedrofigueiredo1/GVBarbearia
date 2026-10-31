@@ -1,13 +1,25 @@
-import { IsEmail, IsNotEmpty, IsString, MaxLength, MinLength } from 'class-validator';
+import {
+  IsEmail,
+  IsNotEmpty,
+  IsString,
+  MaxLength,
+  MinLength,
+} from 'class-validator';
+import {
+  Aparar,
+  EmailNormalizado,
+} from '../../comum/decorators/transformacoes';
 
 // Reflete os "Critérios" da US Cadastro de Administrador:
 // nome, login e senha são obrigatórios.
 export class CreateAdministradorDto {
+  @Aparar()
   @IsString()
   @IsNotEmpty({ message: 'O nome do administrador é obrigatório.' })
   @MaxLength(100)
   nome: string;
 
+  @EmailNormalizado()
   @IsEmail({}, { message: 'O login deve ser um e-mail válido.' })
   login: string;
 

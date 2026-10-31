@@ -4,7 +4,6 @@ import {
   Delete,
   Get,
   Param,
-  ParseIntPipe,
   Patch,
   Post,
   UseGuards,
@@ -17,6 +16,7 @@ import { ListarProfissionais } from './operacoes/listar-profissionais';
 import { BuscarProfissional } from './operacoes/buscar-profissional';
 import { EditarProfissional } from './operacoes/editar-profissional';
 import { ExcluirProfissional } from './operacoes/excluir-profissional';
+import { IdPipe } from '../comum/pipes/id.pipe';
 
 // Conforme a Regra de Negócio "apenas administradores autenticados podem..."
 // presente em todas as US de Profissionais. Cada rota abaixo só chama a
@@ -47,14 +47,14 @@ export class ProfissionaisController {
 
   // ===== BUSCAR PROFISSIONAL POR ID =====
   @Get(':id')
-  findOne(@Param('id', ParseIntPipe) id: number) {
+  findOne(@Param('id', IdPipe) id: number) {
     return this.buscarProfissional.executar(id);
   }
 
   // ===== EDITAR PROFISSIONAL =====
   @Patch(':id')
   update(
-    @Param('id', ParseIntPipe) id: number,
+    @Param('id', IdPipe) id: number,
     @Body() dto: UpdateProfissionalDto,
   ) {
     return this.editarProfissional.executar(id, dto);
@@ -62,7 +62,7 @@ export class ProfissionaisController {
 
   // ===== EXCLUIR PROFISSIONAL =====
   @Delete(':id')
-  remove(@Param('id', ParseIntPipe) id: number) {
+  remove(@Param('id', IdPipe) id: number) {
     return this.excluirProfissional.executar(id);
   }
 }

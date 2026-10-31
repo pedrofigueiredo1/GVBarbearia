@@ -1,4 +1,5 @@
 import { Body, Controller, Get, Post } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import { CreateClienteDto } from '../clientes/dto/create-cliente.dto';
 import { AdicionarCliente } from '../clientes/operacoes/adicionar-cliente';
 import { ConsultarBarbearia } from '../barbearia/operacoes/consultar-barbearia';
@@ -25,6 +26,8 @@ export class PublicoController {
   // ===== CADASTRO DE CLIENTE PELO APP =====
   // US "Cadastro de Cliente" (item 2.37): usa a mesma operação do cadastro
   // feito pelo administrador (e-mail duplicado já vira 409).
+  // Cadastro aberto a qualquer um: limitado a 10 contas por hora por IP.
+  @Throttle({ default: { limit: 10, ttl: 3_600_000 } })
   @Post('clientes')
   cadastrarCliente(@Body() dto: CreateClienteDto) {
     return this.adicionarCliente.executar(dto);

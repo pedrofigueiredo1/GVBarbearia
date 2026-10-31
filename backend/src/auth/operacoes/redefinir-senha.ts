@@ -6,12 +6,16 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import * as bcrypt from 'bcryptjs';
 import { PrismaService } from '../../prisma/prisma.service';
+import { MailService } from '../../mail/mail.service';
 import { RedefinirSenhaDto } from '../dto/redefinir-senha.dto';
 import { hashDoToken } from './compartilhado';
 
 @Injectable()
 export class RedefinirSenha {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly mail: MailService,
+  ) {}
 
   async executar({ token, novaSenha }: RedefinirSenhaDto) {
     const administrador = await this.prisma.administrador.findFirst({
@@ -36,6 +40,11 @@ export class RedefinirSenha {
       },
     });
 
-    return { mensagem: 'Senha redefinida com sucesso. Faça login com a nova senha.' };
+    // Aviso de segurança: se não foi o administrador, ele fica sabendo.
+    void this.mail.enviarSenhaAlterada(administrador.login);
+
+    return {
+      mensagem: 'Senha redefinida com sucesso. Faça login com a nova senha.',
+    };
   }
 }

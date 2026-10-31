@@ -86,3 +86,14 @@ export function estaNaGrade(dataHora: Date, duracaoMinutos: number) {
     (h) => h.getTime() === dataHora.getTime(),
   );
 }
+
+// Até quantos dias à frente o cliente pode agendar (o app mostra o mesmo
+// limite no calendário).
+export const HORIZONTE_DIAS = 60;
+
+// Último dia (AAAA-MM-DD, no horário de Brasília) em que ainda se pode agendar.
+export function ultimaDataAgendavel() {
+  return dataEHoraLocais(
+    new Date(Date.now() + HORIZONTE_DIAS * 24 * 60 * MS_POR_MINUTO),
+  ).data;
+}

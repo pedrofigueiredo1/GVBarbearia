@@ -21,7 +21,9 @@ export class EditarAdministrador {
     await this.buscarAdministrador.executar(id);
 
     const { senha, ...resto } = dto;
-    const data = senha ? { ...resto, senha: await bcrypt.hash(senha, 10) } : resto;
+    const data = senha
+      ? { ...resto, senha: await bcrypt.hash(senha, 10) }
+      : resto;
 
     try {
       return await this.prisma.administrador.update({

@@ -1,8 +1,10 @@
 import { IsEmail, IsNotEmpty, IsString } from 'class-validator';
+import { EmailNormalizado } from '../../comum/decorators/transformacoes';
 
 // Reflete os "Critérios" da US Login de Administrador: usuário (aqui, o
 // e-mail cadastrado como login) e senha.
 export class LoginDto {
+  @EmailNormalizado()
   @IsEmail({}, { message: 'Informe um e-mail válido.' })
   login: string;
 

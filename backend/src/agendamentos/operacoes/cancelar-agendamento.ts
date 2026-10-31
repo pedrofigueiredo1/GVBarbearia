@@ -10,7 +10,7 @@ import { Injectable } from '@nestjs/common';
 import { StatusAgendamento } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { BuscarAgendamento } from './buscar-agendamento';
-import { INCLUDE_RELACOES } from './compartilhado';
+import { INCLUDE_RELACOES, garantirQueNaoEstaConcluido } from './compartilhado';
 
 @Injectable()
 export class CancelarAgendamento {
@@ -20,7 +20,8 @@ export class CancelarAgendamento {
   ) {}
 
   async executar(id: number) {
-    await this.buscarAgendamento.executar(id);
+    const atual = await this.buscarAgendamento.executar(id);
+    garantirQueNaoEstaConcluido(atual.status);
 
     return this.prisma.agendamento.update({
       where: { id },

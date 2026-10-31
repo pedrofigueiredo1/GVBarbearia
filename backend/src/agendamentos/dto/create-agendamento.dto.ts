@@ -18,6 +18,9 @@ export class CreateAgendamentoDto {
   @Min(1)
   profissionalId: number;
 
-  @IsDateString({}, { message: 'Informe uma data e horário válidos (ISO 8601).' })
+  @IsDateString(
+    {},
+    { message: 'Informe uma data e horário válidos (ISO 8601).' },
+  )
   dataHora: string;
 }

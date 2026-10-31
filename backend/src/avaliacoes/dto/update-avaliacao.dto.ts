@@ -1,4 +1,13 @@
-import { IsInt, IsNotEmpty, IsOptional, IsString, Max, MaxLength, Min } from 'class-validator';
+import {
+  IsInt,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  Max,
+  MaxLength,
+  Min,
+} from 'class-validator';
+import { Aparar } from '../../comum/decorators/transformacoes';
 
 // Não existe DTO de criação: o Cadastro de Avaliação é feito pelo próprio
 // cliente no app (fase posterior), exigindo vínculo com um atendimento
@@ -13,6 +22,7 @@ export class UpdateAvaliacaoDto {
   nota?: number;
 
   @IsOptional()
+  @Aparar()
   @IsString()
   @IsNotEmpty({ message: 'O comentário não pode ficar vazio.' })
   @MaxLength(1000)

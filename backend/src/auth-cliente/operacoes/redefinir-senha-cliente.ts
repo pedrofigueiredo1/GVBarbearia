@@ -8,6 +8,7 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import * as bcrypt from 'bcryptjs';
 import { timingSafeEqual } from 'crypto';
 import { PrismaService } from '../../prisma/prisma.service';
+import { MailService } from '../../mail/mail.service';
 import { RedefinirSenhaClienteDto } from '../dto/redefinir-senha-cliente.dto';
 import { MAXIMO_TENTATIVAS_CODIGO, hashDoCodigo } from './compartilhado';
 
@@ -16,7 +17,10 @@ const MENSAGEM_INVALIDO =
 
 @Injectable()
 export class RedefinirSenhaCliente {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly mail: MailService,
+  ) {}
 
   async executar({ email, codigo, novaSenha }: RedefinirSenhaClienteDto) {
     const cliente = await this.prisma.cliente.findUnique({ where: { email } });
@@ -64,6 +68,9 @@ export class RedefinirSenhaCliente {
         tentativasRecuperacao: 0,
       },
     });
+
+    // Aviso de segurança: se não foi o cliente, ele fica sabendo.
+    void this.mail.enviarSenhaAlterada(cliente.email);
 
     return {
       mensagem: 'Senha redefinida com sucesso. Faça login com a nova senha.',

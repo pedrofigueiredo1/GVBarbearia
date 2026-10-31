@@ -4,6 +4,10 @@ import { createHash } from 'crypto';
 // US Recuperação de Senha de Cliente (item 2.39): o código vale 15 minutos.
 export const VALIDADE_CODIGO_MINUTOS = 15;
 
+// Depois de enviar um código, só se envia outro (para o mesmo e-mail) passado
+// este tempo.
+export const INTERVALO_MINIMO_ENTRE_ENVIOS_SEGUNDOS = 60;
+
 // Um código de 6 dígitos só tem 1 milhão de combinações, por isso o número de
 // tentativas erradas é limitado: passado este limite, o código é invalidado e
 // o cliente precisa pedir outro.

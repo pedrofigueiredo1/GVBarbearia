@@ -9,8 +9,21 @@ const prisma = new PrismaClient();
 // login ser possível. Este script cria (ou atualiza a senha de) esse
 // administrador inicial diretamente no banco, fora da API protegida.
 async function main() {
-  const login = process.env.ADMIN_SEED_EMAIL ?? 'admin@gvbarbearia.com';
+  const login = (
+    process.env.ADMIN_SEED_EMAIL ?? 'admin@gvbarbearia.com'
+  ).toLowerCase();
   const senha = process.env.ADMIN_SEED_PASSWORD ?? 'admin123';
+
+  // A senha padrão (admin123) é só para desenvolvimento. Em produção o seed se
+  // recusa a usá-la ou a usar uma senha curta.
+  if (
+    process.env.NODE_ENV === 'production' &&
+    (senha === 'admin123' || senha.length < 12)
+  ) {
+    throw new Error(
+      'Em produção defina ADMIN_SEED_PASSWORD com pelo menos 12 caracteres (não use a senha padrão).',
+    );
+  }
   const senhaHash = await bcrypt.hash(senha, 10);
 
   const administrador = await prisma.administrador.upsert({

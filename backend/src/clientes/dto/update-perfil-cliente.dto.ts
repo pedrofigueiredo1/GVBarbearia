@@ -6,7 +6,9 @@ import {
   IsString,
   MaxLength,
   MinLength,
+  Matches,
 } from 'class-validator';
+import { EmailNormalizado } from '../../comum/decorators/transformacoes';
 
 const aparar = ({ value }: { value: unknown }) =>
   typeof value === 'string' ? value.trim() : value;
@@ -24,7 +26,7 @@ export class UpdatePerfilClienteDto {
   nome?: string;
 
   @IsOptional()
-  @Transform(aparar)
+  @EmailNormalizado()
   @IsEmail({}, { message: 'Informe um e-mail válido.' })
   email?: string;
 
@@ -33,6 +35,10 @@ export class UpdatePerfilClienteDto {
   @IsString()
   @IsNotEmpty({ message: 'O telefone não pode ficar vazio.' })
   @MaxLength(20)
+  @Matches(/^[0-9()+\-\s]{8,20}$/, {
+    message:
+      'Informe um telefone válido (apenas números, espaços, parênteses, + e -).',
+  })
   telefone?: string;
 
   @IsOptional()

@@ -22,7 +22,10 @@ export class UpdateAgendamentoDto {
   profissionalId?: number;
 
   @IsOptional()
-  @IsDateString({}, { message: 'Informe uma data e horário válidos (ISO 8601).' })
+  @IsDateString(
+    {},
+    { message: 'Informe uma data e horário válidos (ISO 8601).' },
+  )
   dataHora?: string;
 
   @IsOptional()

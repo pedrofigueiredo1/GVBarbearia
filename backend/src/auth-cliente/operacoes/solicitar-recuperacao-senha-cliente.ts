@@ -9,7 +9,11 @@ import { randomInt } from 'crypto';
 import { PrismaService } from '../../prisma/prisma.service';
 import { MailService } from '../../mail/mail.service';
 import { SolicitarRecuperacaoSenhaClienteDto } from '../dto/solicitar-recuperacao-senha-cliente.dto';
-import { VALIDADE_CODIGO_MINUTOS, hashDoCodigo } from './compartilhado';
+import {
+  INTERVALO_MINIMO_ENTRE_ENVIOS_SEGUNDOS,
+  VALIDADE_CODIGO_MINUTOS,
+  hashDoCodigo,
+} from './compartilhado';
 
 export const MENSAGEM_CODIGO_GENERICA =
   'Se o e-mail estiver cadastrado, você receberá um código para redefinir a senha.';
@@ -24,7 +28,15 @@ export class SolicitarRecuperacaoSenhaCliente {
   async executar({ email }: SolicitarRecuperacaoSenhaClienteDto) {
     const cliente = await this.prisma.cliente.findUnique({ where: { email } });
 
-    if (cliente) {
+    // Se um código foi enviado há menos de 1 minuto, não envia outro: evita que
+    // alguém inunde a caixa de e-mail do cliente. A resposta é a mesma.
+    const enviadoHaPouco =
+      cliente?.codigoRecuperacaoExpiraEm &&
+      cliente.codigoRecuperacaoExpiraEm.getTime() -
+        VALIDADE_CODIGO_MINUTOS * 60_000 >
+        Date.now() - INTERVALO_MINIMO_ENTRE_ENVIOS_SEGUNDOS * 1000;
+
+    if (cliente && !enviadoHaPouco) {
       const codigo = randomInt(0, 1_000_000).toString().padStart(6, '0');
 
       await this.prisma.cliente.update({
@@ -38,7 +50,9 @@ export class SolicitarRecuperacaoSenhaCliente {
         },
       });
 
-      this.mail.enviarCodigoRecuperacaoSenha(cliente.email, codigo);
+      // Sem esperar o envio terminar: a resposta demora o mesmo tempo exista o
+      // e-mail ou não (senão o tempo revelaria quais e-mails estão cadastrados).
+      void this.mail.enviarCodigoRecuperacaoSenha(cliente.email, codigo);
     }
 
     return { mensagem: MENSAGEM_CODIGO_GENERICA };

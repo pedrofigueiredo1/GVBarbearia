@@ -4,7 +4,6 @@ import {
   Delete,
   Get,
   Param,
-  ParseIntPipe,
   Patch,
   Post,
   UseGuards,
@@ -17,6 +16,7 @@ import { ListarProdutos } from './operacoes/listar-produtos';
 import { BuscarProduto } from './operacoes/buscar-produto';
 import { EditarProduto } from './operacoes/editar-produto';
 import { ExcluirProduto } from './operacoes/excluir-produto';
+import { IdPipe } from '../comum/pipes/id.pipe';
 
 @UseGuards(JwtAuthGuard)
 @Controller('produtos')
@@ -43,14 +43,14 @@ export class ProdutosController {
 
   // ===== BUSCAR PRODUTO POR ID =====
   @Get(':id')
-  findOne(@Param('id', ParseIntPipe) id: number) {
+  findOne(@Param('id', IdPipe) id: number) {
     return this.buscarProduto.executar(id);
   }
 
   // ===== EDITAR PRODUTO =====
   @Patch(':id')
   update(
-    @Param('id', ParseIntPipe) id: number,
+    @Param('id', IdPipe) id: number,
     @Body() dto: UpdateProdutoDto,
   ) {
     return this.editarProduto.executar(id, dto);
@@ -58,7 +58,7 @@ export class ProdutosController {
 
   // ===== EXCLUIR PRODUTO =====
   @Delete(':id')
-  remove(@Param('id', ParseIntPipe) id: number) {
+  remove(@Param('id', IdPipe) id: number) {
     return this.excluirProduto.executar(id);
   }
 }

@@ -9,7 +9,11 @@ import { randomBytes } from 'crypto';
 import { PrismaService } from '../../prisma/prisma.service';
 import { MailService } from '../../mail/mail.service';
 import { SolicitarRecuperacaoSenhaDto } from '../dto/solicitar-recuperacao-senha.dto';
-import { VALIDADE_RECUPERACAO_MINUTOS, hashDoToken } from './compartilhado';
+import {
+  INTERVALO_MINIMO_ENTRE_ENVIOS_SEGUNDOS,
+  VALIDADE_RECUPERACAO_MINUTOS,
+  hashDoToken,
+} from './compartilhado';
 
 export const MENSAGEM_RECUPERACAO_GENERICA =
   'Se o e-mail estiver cadastrado, você receberá um link para redefinir a senha.';
@@ -22,19 +26,36 @@ export class SolicitarRecuperacaoSenha {
   ) {}
 
   async executar({ login }: SolicitarRecuperacaoSenhaDto) {
-    const administrador = await this.prisma.administrador.findUnique({ where: { login } });
+    const administrador = await this.prisma.administrador.findUnique({
+      where: { login },
+    });
 
-    if (administrador) {
+    // Se um link foi enviado há menos de 1 minuto, não envia outro: evita que
+    // alguém inunde a caixa de e-mail do administrador. A resposta é a mesma.
+    const enviadoHaPouco =
+      administrador?.tokenRecuperacaoExpiraEm &&
+      administrador.tokenRecuperacaoExpiraEm.getTime() -
+        VALIDADE_RECUPERACAO_MINUTOS * 60_000 >
+        Date.now() - INTERVALO_MINIMO_ENTRE_ENVIOS_SEGUNDOS * 1000;
+
+    if (administrador && !enviadoHaPouco) {
       const token = randomBytes(32).toString('hex');
-      const expiraEm = new Date(Date.now() + VALIDADE_RECUPERACAO_MINUTOS * 60 * 1000);
+      const expiraEm = new Date(
+        Date.now() + VALIDADE_RECUPERACAO_MINUTOS * 60 * 1000,
+      );
 
       await this.prisma.administrador.update({
         where: { id: administrador.id },
-        data: { tokenRecuperacaoHash: hashDoToken(token), tokenRecuperacaoExpiraEm: expiraEm },
+        data: {
+          tokenRecuperacaoHash: hashDoToken(token),
+          tokenRecuperacaoExpiraEm: expiraEm,
+        },
       });
 
       const urlPainel = process.env.ADMIN_URL ?? 'http://localhost:3001';
-      this.mail.enviarLinkRecuperacaoSenha(
+      // Sem esperar o envio terminar: a resposta demora o mesmo tempo exista o
+      // e-mail ou não (senão o tempo revelaria quais e-mails estão cadastrados).
+      void this.mail.enviarLinkRecuperacaoSenha(
         administrador.login,
         `${urlPainel}/login/redefinir-senha?token=${token}`,
       );

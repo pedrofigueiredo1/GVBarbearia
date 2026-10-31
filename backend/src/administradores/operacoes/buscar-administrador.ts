@@ -17,7 +17,9 @@ export class BuscarAdministrador {
     });
 
     if (!administrador) {
-      throw new NotFoundException(`Administrador com id ${id} não foi encontrado.`);
+      throw new NotFoundException(
+        `Administrador com id ${id} não foi encontrado.`,
+      );
     }
 
     return administrador;

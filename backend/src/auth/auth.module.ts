@@ -23,6 +23,11 @@ import { RedefinirSenha } from './operacoes/redefinir-senha';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy, SolicitarRecuperacaoSenha, RedefinirSenha],
+  providers: [
+    AuthService,
+    JwtStrategy,
+    SolicitarRecuperacaoSenha,
+    RedefinirSenha,
+  ],
 })
 export class AuthModule {}

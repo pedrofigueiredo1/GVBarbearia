@@ -4,7 +4,6 @@ import {
   Delete,
   Get,
   Param,
-  ParseIntPipe,
   Post,
   Query,
   Req,
@@ -17,6 +16,7 @@ import { AdicionarAgendamentoCliente } from './operacoes/adicionar-agendamento-c
 import { CancelarAgendamentoCliente } from './operacoes/cancelar-agendamento-cliente';
 import { ConsultarHorariosDisponiveis } from './operacoes/consultar-horarios-disponiveis';
 import { ListarAgendamentosCliente } from './operacoes/listar-agendamentos-cliente';
+import { IdPipe } from '../comum/pipes/id.pipe';
 
 // Rotas do cliente logado no app. Ficam em /meus-agendamentos, separadas de
 // /agendamentos (painel), e só aceitam token de CLIENTE. O cliente sempre vem
@@ -60,7 +60,7 @@ export class AgendamentosClienteController {
   @Delete(':id')
   cancelar(
     @Req() req: { user: { id: number } },
-    @Param('id', ParseIntPipe) id: number,
+    @Param('id', IdPipe) id: number,
   ) {
     return this.cancelarAgendamentoCliente.executar(req.user.id, id);
   }

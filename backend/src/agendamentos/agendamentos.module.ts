@@ -7,6 +7,7 @@ import { CancelarAgendamentoCliente } from './operacoes/cancelar-agendamento-cli
 import { ConsultarHorariosDisponiveis } from './operacoes/consultar-horarios-disponiveis';
 import { ListarAgendamentosCliente } from './operacoes/listar-agendamentos-cliente';
 import { ListarAgendamentos } from './operacoes/listar-agendamentos';
+import { ListarAgendamentosPaginado } from './operacoes/listar-agendamentos-paginado';
 import { BuscarAgendamento } from './operacoes/buscar-agendamento';
 import { EditarAgendamento } from './operacoes/editar-agendamento';
 import { CancelarAgendamento } from './operacoes/cancelar-agendamento';
@@ -24,6 +25,7 @@ import {
     CancelarAgendamentoCliente,
     ConsultarHorariosDisponiveis,
     ListarAgendamentos,
+    ListarAgendamentosPaginado,
     BuscarAgendamento,
     EditarAgendamento,
     CancelarAgendamento,

@@ -8,6 +8,7 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import { BuscarCliente } from '../clientes/operacoes/buscar-cliente';
 import { ClienteJwtAuthGuard } from './cliente-jwt-auth.guard';
 import { LoginClienteDto } from './dto/login-cliente.dto';
@@ -27,6 +28,8 @@ export class AuthClienteController {
   ) {}
 
   // ===== LOGIN DE CLIENTE =====
+  // Contra tentativa de adivinhar a senha: 5 tentativas por minuto por IP.
+  @Throttle({ default: { limit: 5, ttl: 60_000 } })
   @Post('login')
   @HttpCode(HttpStatus.OK)
   login(@Body() dto: LoginClienteDto) {
@@ -43,6 +46,8 @@ export class AuthClienteController {
   }
 
   // ===== SOLICITAR RECUPERACAO DE SENHA DO CLIENTE =====
+  // 3 pedidos a cada 15 minutos por IP, para ninguém inundar uma caixa de e-mail.
+  @Throttle({ default: { limit: 3, ttl: 900_000 } })
   @Post('esqueci-senha')
   @HttpCode(HttpStatus.OK)
   esqueciSenha(@Body() dto: SolicitarRecuperacaoSenhaClienteDto) {
@@ -50,6 +55,7 @@ export class AuthClienteController {
   }
 
   // ===== REDEFINIR SENHA DO CLIENTE =====
+  @Throttle({ default: { limit: 10, ttl: 900_000 } })
   @Post('redefinir-senha')
   @HttpCode(HttpStatus.OK)
   redefinir(@Body() dto: RedefinirSenhaClienteDto) {

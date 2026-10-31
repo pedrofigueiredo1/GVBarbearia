@@ -4,7 +4,6 @@ import {
   Delete,
   Get,
   Param,
-  ParseIntPipe,
   Patch,
   Post,
   UseGuards,
@@ -17,6 +16,7 @@ import { ListarServicos } from './operacoes/listar-servicos';
 import { BuscarServico } from './operacoes/buscar-servico';
 import { EditarServico } from './operacoes/editar-servico';
 import { ExcluirServico } from './operacoes/excluir-servico';
+import { IdPipe } from '../comum/pipes/id.pipe';
 
 @UseGuards(JwtAuthGuard)
 @Controller('servicos')
@@ -43,14 +43,14 @@ export class ServicosController {
 
   // ===== BUSCAR SERVICO POR ID =====
   @Get(':id')
-  findOne(@Param('id', ParseIntPipe) id: number) {
+  findOne(@Param('id', IdPipe) id: number) {
     return this.buscarServico.executar(id);
   }
 
   // ===== EDITAR SERVICO =====
   @Patch(':id')
   update(
-    @Param('id', ParseIntPipe) id: number,
+    @Param('id', IdPipe) id: number,
     @Body() dto: UpdateServicoDto,
   ) {
     return this.editarServico.executar(id, dto);
@@ -58,7 +58,7 @@ export class ServicosController {
 
   // ===== EXCLUIR SERVICO =====
   @Delete(':id')
-  remove(@Param('id', ParseIntPipe) id: number) {
+  remove(@Param('id', IdPipe) id: number) {
     return this.excluirServico.executar(id);
   }
 }
