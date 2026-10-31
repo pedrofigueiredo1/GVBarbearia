@@ -5,3 +5,4 @@ export { listarAgendamentos } from './listar-agendamentos';
 export { criarAgendamento } from './adicionar-agendamento';
 export { editarAgendamento } from './editar-agendamento';
 export { cancelarAgendamento } from './cancelar-agendamento';
+export { listarAgendamentosPaginado } from './listar-agendamentos-paginado';

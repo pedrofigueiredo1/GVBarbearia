@@ -90,7 +90,7 @@ export default function RelatorioAvaliacoesPage() {
           <input
             id="dataInicio"
             type="date"
-            className="rounded border border-black/15 dark:border-white/20 bg-transparent px-3 py-2 text-sm"
+            className="rounded-lg border border-borda bg-superficie-alta px-3 py-2 text-sm"
             value={dataInicio}
             onChange={(e) => setDataInicio(e.target.value)}
           />
@@ -102,7 +102,7 @@ export default function RelatorioAvaliacoesPage() {
           <input
             id="dataFim"
             type="date"
-            className="rounded border border-black/15 dark:border-white/20 bg-transparent px-3 py-2 text-sm"
+            className="rounded-lg border border-borda bg-superficie-alta px-3 py-2 text-sm"
             value={dataFim}
             onChange={(e) => setDataFim(e.target.value)}
           />
@@ -113,7 +113,7 @@ export default function RelatorioAvaliacoesPage() {
           </label>
           <select
             id="profissionalId"
-            className="rounded border border-black/15 dark:border-white/20 bg-background text-foreground px-3 py-2 text-sm"
+            className="rounded-lg border border-borda bg-superficie-alta text-foreground px-3 py-2 text-sm"
             value={profissionalId}
             onChange={(e) => setProfissionalId(e.target.value)}
           >
@@ -131,7 +131,7 @@ export default function RelatorioAvaliacoesPage() {
           </label>
           <select
             id="servicoId"
-            className="rounded border border-black/15 dark:border-white/20 bg-background text-foreground px-3 py-2 text-sm"
+            className="rounded-lg border border-borda bg-superficie-alta text-foreground px-3 py-2 text-sm"
             value={servicoId}
             onChange={(e) => setServicoId(e.target.value)}
           >
@@ -146,7 +146,7 @@ export default function RelatorioAvaliacoesPage() {
         <button
           type="submit"
           disabled={carregando}
-          className="rounded bg-copper text-copper-ink hover:brightness-110 px-4 py-2 text-sm font-medium disabled:opacity-50"
+          className="rounded-lg bg-copper text-copper-ink hover:brightness-110 px-4 py-2 text-sm font-medium disabled:opacity-50"
         >
           {carregando ? 'Gerando...' : 'Gerar relatório'}
         </button>
@@ -155,7 +155,7 @@ export default function RelatorioAvaliacoesPage() {
       {erro && <p className="text-sm text-red-600 border border-red-200 rounded p-3">{erro}</p>}
 
       {relatorio && !erro && relatorio.total === 0 && (
-        <p className="text-sm text-black/60 dark:text-white/60">
+        <p className="text-sm text-white/60">
           Não há avaliações registradas para os filtros selecionados.
         </p>
       )}
@@ -165,21 +165,21 @@ export default function RelatorioAvaliacoesPage() {
           <div className="flex justify-end mb-3">
             <button
               onClick={() => exportarAvaliacoesPdf(relatorio, descricaoFiltros)}
-              className="rounded bg-copper text-copper-ink hover:brightness-110 px-3 py-1.5 text-sm font-medium"
+              className="rounded-lg bg-copper text-copper-ink hover:brightness-110 px-3 py-1.5 text-sm font-medium"
             >
               Exportar PDF
             </button>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
-            <div className="rounded border border-black/10 dark:border-white/15 p-4">
-              <p className="text-sm text-black/60 dark:text-white/60">Média geral</p>
+            <div className="rounded-lg border border-borda p-4">
+              <p className="text-sm text-white/60">Média geral</p>
               <p className="text-2xl font-semibold">
                 {relatorio.mediaGeral?.toFixed(2).replace('.', ',')} / 5
               </p>
             </div>
-            <div className="rounded border border-black/10 dark:border-white/15 p-4">
-              <p className="text-sm text-black/60 dark:text-white/60">Avaliações registradas</p>
+            <div className="rounded-lg border border-borda p-4">
+              <p className="text-sm text-white/60">Avaliações registradas</p>
               <p className="text-2xl font-semibold">{relatorio.total}</p>
             </div>
           </div>
@@ -192,7 +192,7 @@ export default function RelatorioAvaliacoesPage() {
               return (
                 <div key={nota} className="flex items-center gap-3 text-sm">
                   <span className="w-16 shrink-0">{nota} estrela{nota > 1 ? 's' : ''}</span>
-                  <div className="flex-1 h-4 rounded bg-black/5 dark:bg-white/10">
+                  <div className="flex-1 h-4 rounded bg-white/10">
                     <div
                       className="h-4 rounded bg-foreground"
                       style={{ width: `${largura}%` }}
@@ -209,12 +209,12 @@ export default function RelatorioAvaliacoesPage() {
             {relatorio.comentariosRecentes.map((c) => (
               <li
                 key={c.id}
-                className="rounded border border-black/10 dark:border-white/15 p-3 text-sm"
+                className="rounded-lg border border-borda p-3 text-sm"
               >
                 <p className="font-medium">
                   {c.nota}/5 — {c.cliente}
                 </p>
-                <p className="text-black/60 dark:text-white/60 text-xs mb-1">
+                <p className="text-white/60 text-xs mb-1">
                   {c.servico} com {c.profissional} · {new Date(c.criadoEm).toLocaleDateString('pt-BR')}
                 </p>
                 <p>{c.comentario}</p>

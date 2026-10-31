@@ -4,3 +4,4 @@ export { listarClientes } from './listar-clientes';
 export { criarCliente } from './adicionar-cliente';
 export { editarCliente } from './editar-cliente';
 export { excluirCliente } from './excluir-cliente';
+export { listarClientesPaginado } from './listar-clientes-paginado';

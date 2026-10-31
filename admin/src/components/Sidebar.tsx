@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -7,6 +8,7 @@ import { clearToken } from '@/lib/auth';
 
 // Ícones (24x24, traço) de cada módulo da barra lateral.
 const ICONES: Record<string, string> = {
+  dashboard: 'M3 3h7v9H3zM14 3h7v5h-7zM14 12h7v9h-7zM3 16h7v5H3z',
   profissionais: 'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75',
   servicos: 'M6 9a3 3 0 1 0 0-6 3 3 0 0 0 0 6M6 21a3 3 0 1 0 0-6 3 3 0 0 0 0 6M20 4 8.12 15.88M14.47 14.48 20 20M8.12 8.12 12 12',
   produtos: 'M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4zM3 6h18M16 10a4 4 0 0 1-8 0',
@@ -19,6 +21,7 @@ const ICONES: Record<string, string> = {
 };
 
 const modulos = [
+  { nome: 'Dashboard', href: '/', icone: 'dashboard' },
   { nome: 'Profissionais', href: '/profissionais', icone: 'profissionais' },
   { nome: 'Serviços', href: '/servicos', icone: 'servicos' },
   { nome: 'Produtos', href: '/produtos', icone: 'produtos' },
@@ -53,6 +56,19 @@ function Icone({ caminho }: { caminho: string }) {
 export function Sidebar() {
   const router = useRouter();
   const pathname = usePathname();
+  // No celular o menu fica escondido e abre por cima da tela (botão no topo).
+  const [aberto, setAberto] = useState(false);
+
+  // Fecha o menu ao trocar de página e ao apertar Esc.
+  useEffect(() => {
+    setAberto(false);
+  }, [pathname]);
+  useEffect(() => {
+    if (!aberto) return;
+    const aoTeclar = (e: KeyboardEvent) => e.key === 'Escape' && setAberto(false);
+    window.addEventListener('keydown', aoTeclar);
+    return () => window.removeEventListener('keydown', aoTeclar);
+  }, [aberto]);
 
   function handleSair() {
     clearToken();
@@ -60,7 +76,36 @@ export function Sidebar() {
   }
 
   return (
-    <aside className="w-64 shrink-0 border-r border-borda bg-superficie p-4 flex flex-col">
+    <>
+      <header className="fixed inset-x-0 top-0 z-40 flex h-14 items-center gap-3 border-b border-borda bg-superficie px-4 lg:hidden">
+        <button
+          onClick={() => setAberto(true)}
+          aria-label="Abrir menu"
+          aria-expanded={aberto}
+          className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-white/80 hover:bg-white/10"
+        >
+          <Icone caminho="M3 6h18M3 12h18M3 18h18" />
+        </button>
+        <Image src="/logo.png" alt="" width={32} height={32} />
+        <span className="text-sm font-semibold tracking-widest text-copper">GV BARBEARIA</span>
+      </header>
+
+      {aberto && (
+        <div className="fixed inset-0 z-40 bg-black/60 lg:hidden" onClick={() => setAberto(false)} aria-hidden="true" />
+      )}
+
+      <aside
+        className={`fixed inset-y-0 left-0 z-50 flex w-64 shrink-0 flex-col overflow-y-auto border-r border-borda bg-superficie p-4 transition-transform lg:static lg:z-auto lg:translate-x-0 ${
+          aberto ? 'translate-x-0' : '-translate-x-full'
+        }`}
+      >
+        <button
+          onClick={() => setAberto(false)}
+          aria-label="Fechar menu"
+          className="absolute right-3 top-3 inline-flex h-8 w-8 items-center justify-center rounded-lg text-white/60 hover:bg-white/10 lg:hidden"
+        >
+          <Icone caminho="M18 6 6 18M6 6l12 12" />
+        </button>
       <div className="flex flex-col items-center gap-1 mb-6 pt-2">
         <Image src="/logo.png" alt="GV Barbearia" width={96} height={96} priority />
         <span className="text-xs tracking-widest text-white/60">PAINEL ADMINISTRATIVO</span>
@@ -68,7 +113,10 @@ export function Sidebar() {
 
       <nav className="flex flex-col gap-1 flex-1">
         {modulos.map((modulo) => {
-          const ativo = pathname === modulo.href || pathname.startsWith(`${modulo.href}/`);
+          const ativo =
+            modulo.href === '/'
+              ? pathname === '/'
+              : pathname === modulo.href || pathname.startsWith(`${modulo.href}/`);
           return (
             <Link
               key={modulo.nome}
@@ -95,6 +143,7 @@ export function Sidebar() {
         <Icone caminho="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" />
         Sair
       </button>
-    </aside>
+      </aside>
+    </>
   );
 }

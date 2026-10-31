@@ -17,6 +17,8 @@ import { STATUS_LABEL } from '@/types/agendamento';
 
 interface Props {
   agendamento?: Agendamento | null;
+  // Valores já preenchidos num agendamento novo (ex.: ao clicar num horário vazio do calendário).
+  inicial?: { profissionalId?: number; dataHora?: string };
   onClose: () => void;
   onSalvar: (data: CreateAgendamentoInput | UpdateAgendamentoInput) => Promise<void>;
 }
@@ -43,7 +45,7 @@ const STATUS_OPCOES: StatusAgendamento[] = ['PENDENTE', 'CONFIRMADO', 'CONCLUIDO
 // não documentada, combinada com Pedro — atendimento presencial de quem
 // prefere não usar o app) quanto para a edição. `status` só aparece na
 // edição: no cadastro ele é sempre definido como CONFIRMADO pelo backend.
-export function AgendamentoFormModal({ agendamento, onClose, onSalvar }: Props) {
+export function AgendamentoFormModal({ agendamento, inicial, onClose, onSalvar }: Props) {
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [servicos, setServicos] = useState<Servico[]>([]);
   const [profissionais, setProfissionais] = useState<Profissional[]>([]);
@@ -51,12 +53,14 @@ export function AgendamentoFormModal({ agendamento, onClose, onSalvar }: Props) 
 
   const camposIniciais = agendamento
     ? paraCamposLocais(agendamento.dataHora)
-    : { data: '', hora: '' };
+    : inicial?.dataHora
+      ? paraCamposLocais(inicial.dataHora)
+      : { data: '', hora: '' };
 
   const [form, setForm] = useState({
     clienteId: agendamento?.clienteId ?? '',
     servicoId: agendamento?.servicoId ?? '',
-    profissionalId: agendamento?.profissionalId ?? '',
+    profissionalId: agendamento?.profissionalId ?? inicial?.profissionalId ?? '',
     data: camposIniciais.data,
     hora: camposIniciais.hora,
     status: agendamento?.status ?? 'CONFIRMADO',
@@ -105,14 +109,14 @@ export function AgendamentoFormModal({ agendamento, onClose, onSalvar }: Props) 
   }
 
   return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50">
-      <div className="bg-background text-foreground rounded-lg shadow-lg w-full max-w-md p-6 border border-black/10 dark:border-white/15 max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50">
+      <div className="bg-superficie text-foreground rounded-xl shadow-xl w-full max-w-md p-6 border border-borda max-h-[90vh] overflow-y-auto">
         <h3 className="text-lg font-semibold mb-4">
           {agendamento ? 'Editar agendamento' : 'Novo agendamento'}
         </h3>
 
         {carregandoOpcoes ? (
-          <p className="text-sm text-black/60 dark:text-white/60">Carregando opções...</p>
+          <p className="text-sm text-white/60">Carregando opções...</p>
         ) : (
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             <div>
@@ -122,7 +126,7 @@ export function AgendamentoFormModal({ agendamento, onClose, onSalvar }: Props) 
               <select
                 id="clienteId"
                 required
-                className="w-full rounded border border-black/15 dark:border-white/20 bg-background text-foreground px-3 py-2 text-sm"
+                className="w-full rounded-lg border border-borda bg-superficie-alta text-foreground px-3 py-2 text-sm"
                 value={form.clienteId}
                 onChange={(e) => setForm({ ...form, clienteId: e.target.value })}
               >
@@ -144,7 +148,7 @@ export function AgendamentoFormModal({ agendamento, onClose, onSalvar }: Props) 
               <select
                 id="servicoId"
                 required
-                className="w-full rounded border border-black/15 dark:border-white/20 bg-background text-foreground px-3 py-2 text-sm"
+                className="w-full rounded-lg border border-borda bg-superficie-alta text-foreground px-3 py-2 text-sm"
                 value={form.servicoId}
                 onChange={(e) => setForm({ ...form, servicoId: e.target.value })}
               >
@@ -166,7 +170,7 @@ export function AgendamentoFormModal({ agendamento, onClose, onSalvar }: Props) 
               <select
                 id="profissionalId"
                 required
-                className="w-full rounded border border-black/15 dark:border-white/20 bg-background text-foreground px-3 py-2 text-sm"
+                className="w-full rounded-lg border border-borda bg-superficie-alta text-foreground px-3 py-2 text-sm"
                 value={form.profissionalId}
                 onChange={(e) => setForm({ ...form, profissionalId: e.target.value })}
               >
@@ -190,7 +194,7 @@ export function AgendamentoFormModal({ agendamento, onClose, onSalvar }: Props) 
                   id="data"
                   type="date"
                   required
-                  className="w-full rounded border border-black/15 dark:border-white/20 bg-transparent px-3 py-2 text-sm"
+                  className="w-full rounded-lg border border-borda bg-superficie-alta px-3 py-2 text-sm"
                   value={form.data}
                   onChange={(e) => setForm({ ...form, data: e.target.value })}
                 />
@@ -203,7 +207,7 @@ export function AgendamentoFormModal({ agendamento, onClose, onSalvar }: Props) 
                   id="hora"
                   type="time"
                   required
-                  className="w-full rounded border border-black/15 dark:border-white/20 bg-transparent px-3 py-2 text-sm"
+                  className="w-full rounded-lg border border-borda bg-superficie-alta px-3 py-2 text-sm"
                   value={form.hora}
                   onChange={(e) => setForm({ ...form, hora: e.target.value })}
                 />
@@ -217,7 +221,7 @@ export function AgendamentoFormModal({ agendamento, onClose, onSalvar }: Props) 
                 </label>
                 <select
                   id="status"
-                  className="w-full rounded border border-black/15 dark:border-white/20 bg-background text-foreground px-3 py-2 text-sm"
+                  className="w-full rounded-lg border border-borda bg-superficie-alta text-foreground px-3 py-2 text-sm"
                   value={form.status}
                   onChange={(e) =>
                     setForm({ ...form, status: e.target.value as StatusAgendamento })
@@ -238,14 +242,14 @@ export function AgendamentoFormModal({ agendamento, onClose, onSalvar }: Props) 
               <button
                 type="button"
                 onClick={onClose}
-                className="rounded px-4 py-2 text-sm border border-black/15 dark:border-white/20"
+                className="rounded-lg px-4 py-2 text-sm border border-borda"
               >
                 Cancelar
               </button>
               <button
                 type="submit"
                 disabled={salvando}
-                className="rounded bg-copper text-copper-ink hover:brightness-110 px-4 py-2 text-sm font-medium disabled:opacity-50"
+                className="rounded-lg bg-copper text-copper-ink hover:brightness-110 px-4 py-2 text-sm font-medium disabled:opacity-50"
               >
                 {salvando ? 'Salvando...' : 'Salvar'}
               </button>

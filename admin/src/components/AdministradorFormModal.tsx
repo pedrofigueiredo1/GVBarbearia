@@ -47,8 +47,8 @@ export function AdministradorFormModal({ administrador, onClose, onSalvar }: Pro
   }
 
   return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50">
-      <div className="bg-background text-foreground rounded-lg shadow-lg w-full max-w-md p-6 border border-black/10 dark:border-white/15">
+    <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50">
+      <div className="bg-superficie text-foreground rounded-xl shadow-xl w-full max-w-md p-6 border border-borda">
         <h3 className="text-lg font-semibold mb-4">
           {administrador ? 'Editar administrador' : 'Novo administrador'}
         </h3>
@@ -62,7 +62,7 @@ export function AdministradorFormModal({ administrador, onClose, onSalvar }: Pro
               id="nome"
               required
               maxLength={100}
-              className="w-full rounded border border-black/15 dark:border-white/20 bg-transparent px-3 py-2 text-sm"
+              className="w-full rounded-lg border border-borda bg-superficie-alta px-3 py-2 text-sm"
               value={form.nome}
               onChange={(e) => setForm({ ...form, nome: e.target.value })}
             />
@@ -76,7 +76,7 @@ export function AdministradorFormModal({ administrador, onClose, onSalvar }: Pro
               id="login"
               type="email"
               required
-              className="w-full rounded border border-black/15 dark:border-white/20 bg-transparent px-3 py-2 text-sm"
+              className="w-full rounded-lg border border-borda bg-superficie-alta px-3 py-2 text-sm"
               value={form.login}
               onChange={(e) => setForm({ ...form, login: e.target.value })}
             />
@@ -91,7 +91,7 @@ export function AdministradorFormModal({ administrador, onClose, onSalvar }: Pro
               type="password"
               required={!administrador}
               minLength={6}
-              className="w-full rounded border border-black/15 dark:border-white/20 bg-transparent px-3 py-2 text-sm"
+              className="w-full rounded-lg border border-borda bg-superficie-alta px-3 py-2 text-sm"
               value={form.senha}
               onChange={(e) => setForm({ ...form, senha: e.target.value })}
             />
@@ -103,14 +103,14 @@ export function AdministradorFormModal({ administrador, onClose, onSalvar }: Pro
             <button
               type="button"
               onClick={onClose}
-              className="rounded px-4 py-2 text-sm border border-black/15 dark:border-white/20"
+              className="rounded-lg px-4 py-2 text-sm border border-borda"
             >
               Cancelar
             </button>
             <button
               type="submit"
               disabled={salvando}
-              className="rounded bg-copper text-copper-ink hover:brightness-110 px-4 py-2 text-sm font-medium disabled:opacity-50"
+              className="rounded-lg bg-copper text-copper-ink hover:brightness-110 px-4 py-2 text-sm font-medium disabled:opacity-50"
             >
               {salvando ? 'Salvando...' : 'Salvar'}
             </button>

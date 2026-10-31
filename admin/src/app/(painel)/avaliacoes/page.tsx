@@ -1,116 +1,224 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { ApiError } from '@/lib/api';
 import { editarAvaliacao, excluirAvaliacao, listarAvaliacoes } from '@/lib/avaliacoes';
 import type { Avaliacao, AvaliacaoInput } from '@/types/avaliacao';
+import type { Coluna } from '@/types/tabela';
+import { useCarregarLista } from '@/hooks/useCarregarLista';
+import { useTabelaLocal } from '@/hooks/useTabelaLocal';
 import { AvaliacaoFormModal } from '@/components/AvaliacaoFormModal';
+import { useAvisos, useConfirmar } from '@/components/ui/Avisos';
+import { BotaoIcone } from '@/components/ui/BotaoIcone';
+import { CabecalhoPagina } from '@/components/ui/CabecalhoPagina';
+import { BarraDeFiltros, SelectFiltro } from '@/components/ui/Filtros';
+import { TabelaDados } from '@/components/ui/TabelaDados';
 
-// Sem botão "+ Nova avaliação": o Cadastro de Avaliação é feito pelo
-// próprio cliente no app (fase posterior), vinculado a um atendimento
-// concluído — este painel só tem Consulta, Edição e Exclusão.
+const Estrelas = ({ nota }: { nota: number }) => (
+  <span className="whitespace-nowrap text-copper" title={`${nota} de 5`}>
+    {'★'.repeat(nota)}
+    <span className="text-white/20">{'★'.repeat(5 - nota)}</span>
+  </span>
+);
+
+const COLUNAS: Coluna<Avaliacao>[] = [
+  {
+    chave: 'autor',
+    titulo: 'Autor',
+    ordenavel: true,
+    valor: (a) => a.agendamento.cliente.nome,
+    render: (a) => <span className="font-medium">{a.agendamento.cliente.nome}</span>,
+  },
+  {
+    chave: 'servico',
+    titulo: 'Serviço',
+    ordenavel: true,
+    valor: (a) => a.agendamento.servico.nome,
+    render: (a) => a.agendamento.servico.nome,
+  },
+  {
+    chave: 'profissional',
+    titulo: 'Profissional',
+    ordenavel: true,
+    valor: (a) => a.agendamento.profissional.nome,
+    render: (a) => a.agendamento.profissional.nome,
+  },
+  {
+    chave: 'nota',
+    titulo: 'Nota',
+    ordenavel: true,
+    valor: (a) => a.nota,
+    render: (a) => <Estrelas nota={a.nota} />,
+  },
+  {
+    chave: 'comentario',
+    titulo: 'Comentário',
+    className: 'max-w-xs',
+    render: (a) => (
+      <span className="block truncate text-white/70" title={a.comentario}>
+        {a.comentario}
+      </span>
+    ),
+  },
+  {
+    chave: 'data',
+    titulo: 'Data',
+    ordenavel: true,
+    valor: (a) => a.criadoEm,
+    className: 'whitespace-nowrap',
+    render: (a) => new Date(a.criadoEm).toLocaleDateString('pt-BR'),
+  },
+];
+
+const textoBusca = (a: Avaliacao) =>
+  `${a.agendamento.cliente.nome} ${a.agendamento.servico.nome} ${a.agendamento.profissional.nome} ${a.comentario}`;
+
+// Edição e exclusão de avaliações. O cadastro é feito pelo cliente no app.
 export default function AvaliacoesPage() {
-  const [avaliacoes, setAvaliacoes] = useState<Avaliacao[]>([]);
-  const [carregando, setCarregando] = useState(true);
-  const [erro, setErro] = useState<string | null>(null);
+  const avisos = useAvisos();
+  const confirmar = useConfirmar();
   const [avaliacaoEmEdicao, setAvaliacaoEmEdicao] = useState<Avaliacao | null>(null);
+  const [nota, setNota] = useState('');
+  const [profissionalId, setProfissionalId] = useState('');
 
-  async function carregar() {
-    setCarregando(true);
-    setErro(null);
-    try {
-      setAvaliacoes(await listarAvaliacoes());
-    } catch (err) {
-      setErro(
-        err instanceof ApiError
-          ? err.message
-          : 'Não foi possível carregar as avaliações. Verifique se a API está no ar.',
-      );
-    } finally {
-      setCarregando(false);
-    }
+  const { dados, carregando, erro, recarregar } = useCarregarLista(
+    listarAvaliacoes,
+    'Não foi possível carregar as avaliações. Verifique se a API está no ar.',
+  );
+
+  // Profissionais que aparecem nas avaliações, para o filtro.
+  const profissionais = useMemo(() => {
+    const mapa = new Map<number, string>();
+    dados.forEach((a) => mapa.set(a.agendamento.profissional.id, a.agendamento.profissional.nome));
+    return [...mapa.entries()].sort((x, y) => x[1].localeCompare(y[1], 'pt-BR'));
+  }, [dados]);
+
+  const filtro = useCallback(
+    (a: Avaliacao) =>
+      (nota === '' || a.nota === Number(nota)) &&
+      (profissionalId === '' || a.agendamento.profissional.id === Number(profissionalId)),
+    [nota, profissionalId],
+  );
+
+  const tabela = useTabelaLocal(dados, {
+    colunas: COLUNAS,
+    textoBusca,
+    filtro,
+    ordenacaoInicial: { chave: 'data', direcao: 'desc' },
+  });
+
+  function limpar() {
+    tabela.setBusca('');
+    setNota('');
+    setProfissionalId('');
+    tabela.voltarParaPrimeira();
   }
-
-  useEffect(() => {
-    carregar();
-  }, []);
 
   async function handleSalvar(data: AvaliacaoInput) {
     if (!avaliacaoEmEdicao) return;
     await editarAvaliacao(avaliacaoEmEdicao.id, data);
     setAvaliacaoEmEdicao(null);
-    await carregar();
+    avisos.sucesso('Avaliação atualizada.');
+    await recarregar();
   }
 
   async function handleExcluir(avaliacao: Avaliacao) {
-    const confirmado = window.confirm(
-      `Excluir a avaliação de "${avaliacao.agendamento.cliente.nome}"? Essa ação não pode ser desfeita.`,
-    );
-    if (!confirmado) return;
+    const ok = await confirmar({
+      titulo: 'Excluir avaliação',
+      mensagem: `Excluir a avaliação de "${avaliacao.agendamento.cliente.nome}"? Essa ação não pode ser desfeita.`,
+      textoConfirmar: 'Excluir',
+    });
+    if (!ok) return;
 
     try {
       await excluirAvaliacao(avaliacao.id);
-      await carregar();
+      avisos.sucesso('Avaliação excluída.');
+      await recarregar();
     } catch (err) {
-      alert(err instanceof ApiError ? err.message : 'Não foi possível excluir a avaliação.');
+      avisos.erro(err instanceof ApiError ? err.message : 'Não foi possível excluir a avaliação.');
     }
   }
 
   return (
     <div>
-      <h2 className="text-2xl font-semibold mb-6">Avaliações</h2>
+      <CabecalhoPagina
+        titulo="Avaliações"
+        subtitulo="O que os clientes acharam dos atendimentos."
+      />
 
-      {carregando && <p className="text-sm text-black/60 dark:text-white/60">Carregando...</p>}
+      <BarraDeFiltros
+        busca={tabela.busca}
+        aoBuscar={tabela.setBusca}
+        placeholderBusca="Buscar por cliente, serviço ou comentário"
+        ativos={tabela.filtrando}
+        aoLimpar={limpar}
+      >
+        <SelectFiltro
+          rotulo="Nota"
+          value={nota}
+          onChange={(e) => {
+            setNota(e.target.value);
+            tabela.voltarParaPrimeira();
+          }}
+        >
+          <option value="">Todas</option>
+          {[5, 4, 3, 2, 1].map((n) => (
+            <option key={n} value={n}>
+              {n} {n === 1 ? 'estrela' : 'estrelas'}
+            </option>
+          ))}
+        </SelectFiltro>
+        <SelectFiltro
+          rotulo="Profissional"
+          value={profissionalId}
+          onChange={(e) => {
+            setProfissionalId(e.target.value);
+            tabela.voltarParaPrimeira();
+          }}
+        >
+          <option value="">Todos</option>
+          {profissionais.map(([id, nome]) => (
+            <option key={id} value={id}>
+              {nome}
+            </option>
+          ))}
+        </SelectFiltro>
+      </BarraDeFiltros>
 
-      {!carregando && erro && (
-        <p className="text-sm text-red-600 border border-red-200 rounded p-3">{erro}</p>
-      )}
-
-      {!carregando && !erro && avaliacoes.length === 0 && (
-        <p className="text-sm text-black/60 dark:text-white/60">Nenhuma avaliação registrada.</p>
-      )}
-
-      {!carregando && !erro && avaliacoes.length > 0 && (
-        <table className="w-full text-sm border-collapse">
-          <thead>
-            <tr className="text-left border-b border-black/10 dark:border-white/15">
-              <th className="py-2 pr-4 font-medium">Autor</th>
-              <th className="py-2 pr-4 font-medium">Serviço</th>
-              <th className="py-2 pr-4 font-medium">Profissional</th>
-              <th className="py-2 pr-4 font-medium">Nota</th>
-              <th className="py-2 pr-4 font-medium">Comentário</th>
-              <th className="py-2 pr-4 font-medium">Ações</th>
-            </tr>
-          </thead>
-          <tbody>
-            {avaliacoes.map((avaliacao) => (
-              <tr key={avaliacao.id} className="border-b border-black/5 dark:border-white/10">
-                <td className="py-2 pr-4">{avaliacao.agendamento.cliente.nome}</td>
-                <td className="py-2 pr-4">{avaliacao.agendamento.servico.nome}</td>
-                <td className="py-2 pr-4">{avaliacao.agendamento.profissional.nome}</td>
-                <td className="py-2 pr-4">{avaliacao.nota} / 5</td>
-                <td className="py-2 pr-4 max-w-xs truncate" title={avaliacao.comentario}>
-                  {avaliacao.comentario}
-                </td>
-                <td className="py-2 pr-4 whitespace-nowrap">
-                  <button
-                    onClick={() => setAvaliacaoEmEdicao(avaliacao)}
-                    className="text-sm underline mr-4"
-                  >
-                    Editar
-                  </button>
-                  <button
-                    onClick={() => handleExcluir(avaliacao)}
-                    className="text-sm underline text-red-600"
-                  >
-                    Excluir
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
+      <TabelaDados
+        colunas={COLUNAS}
+        linhas={tabela.linhas}
+        chaveLinha={(a) => a.id}
+        carregando={carregando}
+        erro={erro}
+        aoTentarNovamente={recarregar}
+        mensagemVazia="Nenhuma avaliação registrada."
+        filtrando={tabela.filtrando}
+        ordenacao={tabela.ordenacao}
+        aoOrdenar={tabela.ordenar}
+        paginacao={{
+          pagina: tabela.pagina,
+          total: tabela.total,
+          tamanho: tabela.tamanho,
+          aoMudarPagina: tabela.setPagina,
+          aoMudarTamanho: tabela.setTamanho,
+        }}
+        acoes={(a) => (
+          <>
+            <BotaoIcone
+              icone="editar"
+              titulo={`Editar avaliação de ${a.agendamento.cliente.nome}`}
+              onClick={() => setAvaliacaoEmEdicao(a)}
+            />
+            <BotaoIcone
+              icone="excluir"
+              titulo={`Excluir avaliação de ${a.agendamento.cliente.nome}`}
+              tom="vermelho"
+              onClick={() => handleExcluir(a)}
+            />
+          </>
+        )}
+      />
 
       {avaliacaoEmEdicao && (
         <AvaliacaoFormModal

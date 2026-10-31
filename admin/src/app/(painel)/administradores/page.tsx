@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { ApiError } from '@/lib/api';
 import {
   criarAdministrador,
@@ -9,59 +9,81 @@ import {
   listarAdministradores,
 } from '@/lib/administradores';
 import type { Administrador, AdministradorInput } from '@/types/administrador';
+import type { Coluna } from '@/types/tabela';
+import { useCarregarLista } from '@/hooks/useCarregarLista';
+import { useTabelaLocal } from '@/hooks/useTabelaLocal';
 import { AdministradorFormModal } from '@/components/AdministradorFormModal';
+import { useAvisos, useConfirmar } from '@/components/ui/Avisos';
+import { Botao } from '@/components/ui/Botao';
+import { BotaoIcone } from '@/components/ui/BotaoIcone';
+import { CabecalhoPagina } from '@/components/ui/CabecalhoPagina';
+import { BarraDeFiltros } from '@/components/ui/Filtros';
+import { TabelaDados } from '@/components/ui/TabelaDados';
 
 type EstadoModal =
   | { aberto: false }
   | { aberto: true; administrador: Administrador | null };
 
+const COLUNAS: Coluna<Administrador>[] = [
+  {
+    chave: 'nome',
+    titulo: 'Nome',
+    ordenavel: true,
+    valor: (a) => a.nome,
+    render: (a) => <span className="font-medium">{a.nome}</span>,
+  },
+  {
+    chave: 'login',
+    titulo: 'E-mail (login)',
+    ordenavel: true,
+    valor: (a) => a.login,
+    render: (a) => a.login,
+  },
+];
+
+const textoBusca = (a: Administrador) => `${a.nome} ${a.login}`;
+
 export default function AdministradoresPage() {
-  const [administradores, setAdministradores] = useState<Administrador[]>([]);
-  const [carregando, setCarregando] = useState(true);
-  const [erro, setErro] = useState<string | null>(null);
+  const avisos = useAvisos();
+  const confirmar = useConfirmar();
   const [modal, setModal] = useState<EstadoModal>({ aberto: false });
 
-  async function carregar() {
-    setCarregando(true);
-    setErro(null);
-    try {
-      setAdministradores(await listarAdministradores());
-    } catch (err) {
-      setErro(
-        err instanceof ApiError
-          ? err.message
-          : 'Não foi possível carregar os administradores. Verifique se a API está no ar.',
-      );
-    } finally {
-      setCarregando(false);
-    }
-  }
-
-  useEffect(() => {
-    carregar();
-  }, []);
+  const { dados, carregando, erro, recarregar } = useCarregarLista(
+    listarAdministradores,
+    'Não foi possível carregar os administradores. Verifique se a API está no ar.',
+  );
+  const tabela = useTabelaLocal(dados, {
+    colunas: COLUNAS,
+    textoBusca,
+    ordenacaoInicial: { chave: 'nome', direcao: 'asc' },
+  });
 
   async function handleSalvar(data: AdministradorInput) {
-    if (modal.aberto && modal.administrador) {
-      await editarAdministrador(modal.administrador.id, data);
+    const editando = modal.aberto && modal.administrador;
+    if (editando) {
+      await editarAdministrador(modal.administrador!.id, data);
     } else {
       await criarAdministrador(data as Required<AdministradorInput>);
     }
     setModal({ aberto: false });
-    await carregar();
+    avisos.sucesso(editando ? 'Administrador atualizado.' : 'Administrador cadastrado.');
+    await recarregar();
   }
 
   async function handleExcluir(administrador: Administrador) {
-    const confirmado = window.confirm(
-      `Excluir o administrador "${administrador.nome}"? Essa ação não pode ser desfeita.`,
-    );
-    if (!confirmado) return;
+    const ok = await confirmar({
+      titulo: 'Excluir administrador',
+      mensagem: `Excluir "${administrador.nome}"? Essa ação não pode ser desfeita.`,
+      textoConfirmar: 'Excluir',
+    });
+    if (!ok) return;
 
     try {
       await excluirAdministrador(administrador.id);
-      await carregar();
+      avisos.sucesso('Administrador excluído.');
+      await recarregar();
     } catch (err) {
-      alert(
+      avisos.erro(
         err instanceof ApiError ? err.message : 'Não foi possível excluir o administrador.',
       );
     }
@@ -69,61 +91,57 @@ export default function AdministradoresPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-semibold">Administradores</h2>
-        <button
-          onClick={() => setModal({ aberto: true, administrador: null })}
-          className="rounded bg-copper text-copper-ink hover:brightness-110 px-4 py-2 text-sm font-medium"
-        >
-          + Novo administrador
-        </button>
-      </div>
+      <CabecalhoPagina
+        titulo="Administradores"
+        subtitulo="Quem pode entrar no painel administrativo."
+      >
+        <Botao icone="mais" onClick={() => setModal({ aberto: true, administrador: null })}>
+          Novo administrador
+        </Botao>
+      </CabecalhoPagina>
 
-      {carregando && <p className="text-sm text-black/60 dark:text-white/60">Carregando...</p>}
+      <BarraDeFiltros
+        busca={tabela.busca}
+        aoBuscar={tabela.setBusca}
+        placeholderBusca="Buscar por nome ou e-mail"
+        ativos={tabela.filtrando}
+        aoLimpar={() => tabela.setBusca('')}
+      />
 
-      {!carregando && erro && (
-        <p className="text-sm text-red-600 border border-red-200 rounded p-3">{erro}</p>
-      )}
-
-      {!carregando && !erro && administradores.length === 0 && (
-        <p className="text-sm text-black/60 dark:text-white/60">
-          Nenhum administrador cadastrado.
-        </p>
-      )}
-
-      {!carregando && !erro && administradores.length > 0 && (
-        <table className="w-full text-sm border-collapse">
-          <thead>
-            <tr className="text-left border-b border-black/10 dark:border-white/15">
-              <th className="py-2 pr-4 font-medium">Nome</th>
-              <th className="py-2 pr-4 font-medium">E-mail (login)</th>
-              <th className="py-2 pr-4 font-medium">Ações</th>
-            </tr>
-          </thead>
-          <tbody>
-            {administradores.map((administrador) => (
-              <tr key={administrador.id} className="border-b border-black/5 dark:border-white/10">
-                <td className="py-2 pr-4">{administrador.nome}</td>
-                <td className="py-2 pr-4">{administrador.login}</td>
-                <td className="py-2 pr-4 whitespace-nowrap">
-                  <button
-                    onClick={() => setModal({ aberto: true, administrador })}
-                    className="text-sm underline mr-4"
-                  >
-                    Editar
-                  </button>
-                  <button
-                    onClick={() => handleExcluir(administrador)}
-                    className="text-sm underline text-red-600"
-                  >
-                    Excluir
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
+      <TabelaDados
+        colunas={COLUNAS}
+        linhas={tabela.linhas}
+        chaveLinha={(a) => a.id}
+        carregando={carregando}
+        erro={erro}
+        aoTentarNovamente={recarregar}
+        mensagemVazia="Nenhum administrador cadastrado."
+        filtrando={tabela.filtrando}
+        ordenacao={tabela.ordenacao}
+        aoOrdenar={tabela.ordenar}
+        paginacao={{
+          pagina: tabela.pagina,
+          total: tabela.total,
+          tamanho: tabela.tamanho,
+          aoMudarPagina: tabela.setPagina,
+          aoMudarTamanho: tabela.setTamanho,
+        }}
+        acoes={(a) => (
+          <>
+            <BotaoIcone
+              icone="editar"
+              titulo={`Editar ${a.nome}`}
+              onClick={() => setModal({ aberto: true, administrador: a })}
+            />
+            <BotaoIcone
+              icone="excluir"
+              titulo={`Excluir ${a.nome}`}
+              tom="vermelho"
+              onClick={() => handleExcluir(a)}
+            />
+          </>
+        )}
+      />
 
       {modal.aberto && (
         <AdministradorFormModal

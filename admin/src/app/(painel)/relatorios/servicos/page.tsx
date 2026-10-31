@@ -66,7 +66,7 @@ export default function RelatorioServicosPage() {
           <input
             id="dataInicio"
             type="date"
-            className="rounded border border-black/15 dark:border-white/20 bg-transparent px-3 py-2 text-sm"
+            className="rounded-lg border border-borda bg-superficie-alta px-3 py-2 text-sm"
             value={dataInicio}
             onChange={(e) => setDataInicio(e.target.value)}
           />
@@ -78,7 +78,7 @@ export default function RelatorioServicosPage() {
           <input
             id="dataFim"
             type="date"
-            className="rounded border border-black/15 dark:border-white/20 bg-transparent px-3 py-2 text-sm"
+            className="rounded-lg border border-borda bg-superficie-alta px-3 py-2 text-sm"
             value={dataFim}
             onChange={(e) => setDataFim(e.target.value)}
           />
@@ -86,7 +86,7 @@ export default function RelatorioServicosPage() {
         <button
           type="submit"
           disabled={carregando}
-          className="rounded bg-copper text-copper-ink hover:brightness-110 px-4 py-2 text-sm font-medium disabled:opacity-50"
+          className="rounded-lg bg-copper text-copper-ink hover:brightness-110 px-4 py-2 text-sm font-medium disabled:opacity-50"
         >
           {carregando ? 'Gerando...' : 'Gerar relatório'}
         </button>
@@ -95,7 +95,7 @@ export default function RelatorioServicosPage() {
       {erro && <p className="text-sm text-red-600 border border-red-200 rounded p-3">{erro}</p>}
 
       {ranking && !erro && ranking.length === 0 && (
-        <p className="text-sm text-black/60 dark:text-white/60">
+        <p className="text-sm text-white/60">
           Nenhum serviço foi agendado no período selecionado.
         </p>
       )}
@@ -104,7 +104,7 @@ export default function RelatorioServicosPage() {
         <div className="flex justify-end mb-3">
           <button
             onClick={() => exportarServicosPdf(ranking, descricaoFiltros)}
-            className="rounded bg-copper text-copper-ink hover:brightness-110 px-3 py-1.5 text-sm font-medium"
+            className="rounded-lg bg-copper text-copper-ink hover:brightness-110 px-3 py-1.5 text-sm font-medium"
           >
             Exportar PDF
           </button>
@@ -114,7 +114,7 @@ export default function RelatorioServicosPage() {
       {ranking && !erro && ranking.length > 0 && (
         <table className="w-full text-sm border-collapse">
           <thead>
-            <tr className="text-left border-b border-black/10 dark:border-white/15">
+            <tr className="text-left border-b border-borda">
               <th className="py-2 pr-4 font-medium">#</th>
               <th className="py-2 pr-4 font-medium">Serviço</th>
               <th className="py-2 pr-4 font-medium">Agendamentos</th>
@@ -123,7 +123,7 @@ export default function RelatorioServicosPage() {
           </thead>
           <tbody>
             {ranking.map((item, indice) => (
-              <tr key={item.servicoId} className="border-b border-black/5 dark:border-white/10">
+              <tr key={item.servicoId} className="border-b border-borda/60">
                 <td className="py-2 pr-4">{indice + 1}</td>
                 <td className="py-2 pr-4">{item.nome}</td>
                 <td className="py-2 pr-4">{item.quantidade}</td>

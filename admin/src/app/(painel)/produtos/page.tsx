@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { ApiError } from '@/lib/api';
 import {
   criarProduto,
@@ -8,123 +8,145 @@ import {
   excluirProduto,
   listarProdutos,
 } from '@/lib/produtos';
+import { formatarMoeda } from '@/lib/formatar';
 import type { Produto, ProdutoInput } from '@/types/produto';
+import type { Coluna } from '@/types/tabela';
+import { useCarregarLista } from '@/hooks/useCarregarLista';
+import { useTabelaLocal } from '@/hooks/useTabelaLocal';
 import { ProdutoFormModal } from '@/components/ProdutoFormModal';
+import { useAvisos, useConfirmar } from '@/components/ui/Avisos';
+import { Botao } from '@/components/ui/Botao';
+import { BotaoIcone } from '@/components/ui/BotaoIcone';
+import { CabecalhoPagina } from '@/components/ui/CabecalhoPagina';
+import { BarraDeFiltros } from '@/components/ui/Filtros';
+import { TabelaDados } from '@/components/ui/TabelaDados';
 
 type EstadoModal = { aberto: false } | { aberto: true; produto: Produto | null };
 
-const formatarPreco = (preco: string) =>
-  new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(preco));
+const COLUNAS: Coluna<Produto>[] = [
+  {
+    chave: 'nome',
+    titulo: 'Nome',
+    ordenavel: true,
+    valor: (p) => p.nome,
+    render: (p) => <span className="font-medium">{p.nome}</span>,
+  },
+  {
+    chave: 'descricao',
+    titulo: 'Descrição',
+    className: 'max-w-sm',
+    render: (p) => (
+      <span className="block truncate text-white/70" title={p.descricao}>
+        {p.descricao}
+      </span>
+    ),
+  },
+  {
+    chave: 'preco',
+    titulo: 'Preço',
+    ordenavel: true,
+    valor: (p) => Number(p.preco),
+    className: 'whitespace-nowrap',
+    render: (p) => <span className="text-copper">{formatarMoeda(p.preco)}</span>,
+  },
+];
+
+const textoBusca = (p: Produto) => `${p.nome} ${p.descricao}`;
 
 export default function ProdutosPage() {
-  const [produtos, setProdutos] = useState<Produto[]>([]);
-  const [carregando, setCarregando] = useState(true);
-  const [erro, setErro] = useState<string | null>(null);
+  const avisos = useAvisos();
+  const confirmar = useConfirmar();
   const [modal, setModal] = useState<EstadoModal>({ aberto: false });
 
-  async function carregar() {
-    setCarregando(true);
-    setErro(null);
-    try {
-      setProdutos(await listarProdutos());
-    } catch (err) {
-      setErro(
-        err instanceof ApiError
-          ? err.message
-          : 'Não foi possível carregar os produtos. Verifique se a API está no ar.',
-      );
-    } finally {
-      setCarregando(false);
-    }
-  }
-
-  useEffect(() => {
-    carregar();
-  }, []);
+  const { dados, carregando, erro, recarregar } = useCarregarLista(
+    listarProdutos,
+    'Não foi possível carregar os produtos. Verifique se a API está no ar.',
+  );
+  const tabela = useTabelaLocal(dados, {
+    colunas: COLUNAS,
+    textoBusca,
+    ordenacaoInicial: { chave: 'nome', direcao: 'asc' },
+  });
 
   async function handleSalvar(data: ProdutoInput) {
-    if (modal.aberto && modal.produto) {
-      await editarProduto(modal.produto.id, data);
+    const editando = modal.aberto && modal.produto;
+    if (editando) {
+      await editarProduto(modal.produto!.id, data);
     } else {
       await criarProduto(data);
     }
     setModal({ aberto: false });
-    await carregar();
+    avisos.sucesso(editando ? 'Produto atualizado.' : 'Produto cadastrado.');
+    await recarregar();
   }
 
   async function handleExcluir(produto: Produto) {
-    const confirmado = window.confirm(
-      `Excluir o produto "${produto.nome}"? Essa ação não pode ser desfeita.`,
-    );
-    if (!confirmado) return;
+    const ok = await confirmar({
+      titulo: 'Excluir produto',
+      mensagem: `Excluir "${produto.nome}"? Essa ação não pode ser desfeita.`,
+      textoConfirmar: 'Excluir',
+    });
+    if (!ok) return;
 
     try {
       await excluirProduto(produto.id);
-      await carregar();
+      avisos.sucesso('Produto excluído.');
+      await recarregar();
     } catch (err) {
-      alert(err instanceof ApiError ? err.message : 'Não foi possível excluir o produto.');
+      avisos.erro(err instanceof ApiError ? err.message : 'Não foi possível excluir o produto.');
     }
   }
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-semibold">Produtos</h2>
-        <button
-          onClick={() => setModal({ aberto: true, produto: null })}
-          className="rounded bg-copper text-copper-ink hover:brightness-110 px-4 py-2 text-sm font-medium"
-        >
-          + Novo produto
-        </button>
-      </div>
+      <CabecalhoPagina titulo="Produtos" subtitulo="Produtos vendidos na barbearia.">
+        <Botao icone="mais" onClick={() => setModal({ aberto: true, produto: null })}>
+          Novo produto
+        </Botao>
+      </CabecalhoPagina>
 
-      {carregando && <p className="text-sm text-black/60 dark:text-white/60">Carregando...</p>}
+      <BarraDeFiltros
+        busca={tabela.busca}
+        aoBuscar={tabela.setBusca}
+        placeholderBusca="Buscar por nome ou descrição"
+        ativos={tabela.filtrando}
+        aoLimpar={() => tabela.setBusca('')}
+      />
 
-      {!carregando && erro && (
-        <p className="text-sm text-red-600 border border-red-200 rounded p-3">{erro}</p>
-      )}
-
-      {!carregando && !erro && produtos.length === 0 && (
-        <p className="text-sm text-black/60 dark:text-white/60">Nenhum produto cadastrado.</p>
-      )}
-
-      {!carregando && !erro && produtos.length > 0 && (
-        <table className="w-full text-sm border-collapse">
-          <thead>
-            <tr className="text-left border-b border-black/10 dark:border-white/15">
-              <th className="py-2 pr-4 font-medium">Nome</th>
-              <th className="py-2 pr-4 font-medium">Descrição</th>
-              <th className="py-2 pr-4 font-medium">Preço</th>
-              <th className="py-2 pr-4 font-medium">Ações</th>
-            </tr>
-          </thead>
-          <tbody>
-            {produtos.map((produto) => (
-              <tr key={produto.id} className="border-b border-black/5 dark:border-white/10">
-                <td className="py-2 pr-4">{produto.nome}</td>
-                <td className="py-2 pr-4 max-w-xs truncate" title={produto.descricao}>
-                  {produto.descricao}
-                </td>
-                <td className="py-2 pr-4 whitespace-nowrap">{formatarPreco(produto.preco)}</td>
-                <td className="py-2 pr-4 whitespace-nowrap">
-                  <button
-                    onClick={() => setModal({ aberto: true, produto })}
-                    className="text-sm underline mr-4"
-                  >
-                    Editar
-                  </button>
-                  <button
-                    onClick={() => handleExcluir(produto)}
-                    className="text-sm underline text-red-600"
-                  >
-                    Excluir
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
+      <TabelaDados
+        colunas={COLUNAS}
+        linhas={tabela.linhas}
+        chaveLinha={(p) => p.id}
+        carregando={carregando}
+        erro={erro}
+        aoTentarNovamente={recarregar}
+        mensagemVazia="Nenhum produto cadastrado."
+        filtrando={tabela.filtrando}
+        ordenacao={tabela.ordenacao}
+        aoOrdenar={tabela.ordenar}
+        paginacao={{
+          pagina: tabela.pagina,
+          total: tabela.total,
+          tamanho: tabela.tamanho,
+          aoMudarPagina: tabela.setPagina,
+          aoMudarTamanho: tabela.setTamanho,
+        }}
+        acoes={(p) => (
+          <>
+            <BotaoIcone
+              icone="editar"
+              titulo={`Editar ${p.nome}`}
+              onClick={() => setModal({ aberto: true, produto: p })}
+            />
+            <BotaoIcone
+              icone="excluir"
+              titulo={`Excluir ${p.nome}`}
+              tom="vermelho"
+              onClick={() => handleExcluir(p)}
+            />
+          </>
+        )}
+      />
 
       {modal.aberto && (
         <ProdutoFormModal

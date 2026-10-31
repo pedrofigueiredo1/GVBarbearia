@@ -1,128 +1,141 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { ApiError } from '@/lib/api';
 import {
   criarCliente,
   editarCliente,
   excluirCliente,
-  listarClientes,
+  listarClientesPaginado,
 } from '@/lib/clientes';
 import type { Cliente, ClienteInput } from '@/types/cliente';
+import type { Coluna } from '@/types/tabela';
+import { useTabelaServidor } from '@/hooks/useTabelaServidor';
 import { ClienteFormModal } from '@/components/ClienteFormModal';
+import { useAvisos, useConfirmar } from '@/components/ui/Avisos';
+import { Botao } from '@/components/ui/Botao';
+import { BotaoIcone } from '@/components/ui/BotaoIcone';
+import { CabecalhoPagina } from '@/components/ui/CabecalhoPagina';
+import { BarraDeFiltros } from '@/components/ui/Filtros';
+import { TabelaDados } from '@/components/ui/TabelaDados';
 
 type EstadoModal = { aberto: false } | { aberto: true; cliente: Cliente | null };
 
+const COLUNAS: Coluna<Cliente>[] = [
+  {
+    chave: 'nome',
+    titulo: 'Nome',
+    ordenavel: true,
+    render: (c) => <span className="font-medium">{c.nome}</span>,
+  },
+  { chave: 'email', titulo: 'E-mail', ordenavel: true, render: (c) => c.email },
+  { chave: 'telefone', titulo: 'Telefone', ordenavel: true, className: 'whitespace-nowrap', render: (c) => c.telefone },
+  {
+    chave: 'criadoEm',
+    titulo: 'Cliente desde',
+    ordenavel: true,
+    className: 'whitespace-nowrap',
+    render: (c) => new Date(c.criadoEm).toLocaleDateString('pt-BR'),
+  },
+];
+
 // O cadastro de cliente pelo admin não está nas US originais — é um caso de
 // uso real confirmado com Pedro: atender presencialmente quem prefere não
-// usar o app (ver comentário em clientes.controller.ts no backend).
+// usar o app (ver comentário em clientes.controller.ts no backend). A lista é
+// paginada no servidor porque cresce a cada novo cliente.
 export default function ClientesPage() {
-  const [clientes, setClientes] = useState<Cliente[]>([]);
-  const [carregando, setCarregando] = useState(true);
-  const [erro, setErro] = useState<string | null>(null);
+  const avisos = useAvisos();
+  const confirmar = useConfirmar();
   const [modal, setModal] = useState<EstadoModal>({ aberto: false });
 
-  async function carregar() {
-    setCarregando(true);
-    setErro(null);
-    try {
-      setClientes(await listarClientes());
-    } catch (err) {
-      setErro(
-        err instanceof ApiError
-          ? err.message
-          : 'Não foi possível carregar os clientes. Verifique se a API está no ar.',
-      );
-    } finally {
-      setCarregando(false);
-    }
-  }
-
-  useEffect(() => {
-    carregar();
-  }, []);
+  const tabela = useTabelaServidor<Cliente>(
+    listarClientesPaginado,
+    {},
+    {
+      ordenacaoInicial: { chave: 'nome', direcao: 'asc' },
+      mensagemErro: 'Não foi possível carregar os clientes. Verifique se a API está no ar.',
+    },
+  );
 
   async function handleSalvar(data: ClienteInput) {
-    if (modal.aberto && modal.cliente) {
-      await editarCliente(modal.cliente.id, data);
+    const editando = modal.aberto && modal.cliente;
+    if (editando) {
+      await editarCliente(modal.cliente!.id, data);
     } else {
       await criarCliente(data as Required<ClienteInput>);
     }
     setModal({ aberto: false });
-    await carregar();
+    avisos.sucesso(editando ? 'Cliente atualizado.' : 'Cliente cadastrado.');
+    tabela.recarregar();
   }
 
   async function handleExcluir(cliente: Cliente) {
-    const confirmado = window.confirm(
-      `Excluir o cliente "${cliente.nome}"? Essa ação não pode ser desfeita.`,
-    );
-    if (!confirmado) return;
+    const ok = await confirmar({
+      titulo: 'Excluir cliente',
+      mensagem: `Excluir "${cliente.nome}"? Essa ação não pode ser desfeita.`,
+      textoConfirmar: 'Excluir',
+    });
+    if (!ok) return;
 
     try {
       await excluirCliente(cliente.id);
-      await carregar();
+      avisos.sucesso('Cliente excluído.');
+      tabela.recarregar();
     } catch (err) {
-      alert(err instanceof ApiError ? err.message : 'Não foi possível excluir o cliente.');
+      avisos.erro(err instanceof ApiError ? err.message : 'Não foi possível excluir o cliente.');
     }
   }
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-semibold">Clientes</h2>
-        <button
-          onClick={() => setModal({ aberto: true, cliente: null })}
-          className="rounded bg-copper text-copper-ink hover:brightness-110 px-4 py-2 text-sm font-medium"
-        >
-          + Novo cliente
-        </button>
-      </div>
+      <CabecalhoPagina titulo="Clientes" subtitulo="Clientes cadastrados no app e na recepção.">
+        <Botao icone="mais" onClick={() => setModal({ aberto: true, cliente: null })}>
+          Novo cliente
+        </Botao>
+      </CabecalhoPagina>
 
-      {carregando && <p className="text-sm text-black/60 dark:text-white/60">Carregando...</p>}
+      <BarraDeFiltros
+        busca={tabela.busca}
+        aoBuscar={tabela.setBusca}
+        placeholderBusca="Buscar por nome, e-mail ou telefone"
+        ativos={tabela.filtrando || tabela.busca !== ''}
+        aoLimpar={tabela.limparBusca}
+      />
 
-      {!carregando && erro && (
-        <p className="text-sm text-red-600 border border-red-200 rounded p-3">{erro}</p>
-      )}
-
-      {!carregando && !erro && clientes.length === 0 && (
-        <p className="text-sm text-black/60 dark:text-white/60">Nenhum cliente cadastrado.</p>
-      )}
-
-      {!carregando && !erro && clientes.length > 0 && (
-        <table className="w-full text-sm border-collapse">
-          <thead>
-            <tr className="text-left border-b border-black/10 dark:border-white/15">
-              <th className="py-2 pr-4 font-medium">Nome</th>
-              <th className="py-2 pr-4 font-medium">E-mail</th>
-              <th className="py-2 pr-4 font-medium">Telefone</th>
-              <th className="py-2 pr-4 font-medium">Ações</th>
-            </tr>
-          </thead>
-          <tbody>
-            {clientes.map((cliente) => (
-              <tr key={cliente.id} className="border-b border-black/5 dark:border-white/10">
-                <td className="py-2 pr-4">{cliente.nome}</td>
-                <td className="py-2 pr-4">{cliente.email}</td>
-                <td className="py-2 pr-4">{cliente.telefone}</td>
-                <td className="py-2 pr-4 whitespace-nowrap">
-                  <button
-                    onClick={() => setModal({ aberto: true, cliente })}
-                    className="text-sm underline mr-4"
-                  >
-                    Editar
-                  </button>
-                  <button
-                    onClick={() => handleExcluir(cliente)}
-                    className="text-sm underline text-red-600"
-                  >
-                    Excluir
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
+      <TabelaDados
+        colunas={COLUNAS}
+        linhas={tabela.linhas}
+        chaveLinha={(c) => c.id}
+        carregando={tabela.carregando}
+        erro={tabela.erro}
+        aoTentarNovamente={tabela.recarregar}
+        mensagemVazia="Nenhum cliente cadastrado."
+        filtrando={tabela.filtrando}
+        ordenacao={tabela.ordenacao}
+        aoOrdenar={tabela.ordenar}
+        paginacao={{
+          pagina: tabela.pagina,
+          total: tabela.total,
+          tamanho: tabela.tamanho,
+          aoMudarPagina: tabela.setPagina,
+          aoMudarTamanho: tabela.setTamanho,
+        }}
+        acoes={(c) => (
+          <>
+            <BotaoIcone
+              icone="editar"
+              titulo={`Editar ${c.nome}`}
+              onClick={() => setModal({ aberto: true, cliente: c })}
+            />
+            <BotaoIcone
+              icone="excluir"
+              titulo={`Excluir ${c.nome}`}
+              tom="vermelho"
+              onClick={() => handleExcluir(c)}
+            />
+          </>
+        )}
+      />
 
       {modal.aberto && (
         <ClienteFormModal

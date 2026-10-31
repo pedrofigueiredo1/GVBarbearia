@@ -115,7 +115,7 @@ export default function RelatorioAgendamentosPage() {
           <input
             id="dataInicio"
             type="date"
-            className="w-full rounded border border-black/15 dark:border-white/20 bg-transparent px-3 py-2 text-sm"
+            className="w-full rounded-lg border border-borda bg-superficie-alta px-3 py-2 text-sm"
             value={form.dataInicio}
             onChange={(e) => setForm({ ...form, dataInicio: e.target.value })}
           />
@@ -127,7 +127,7 @@ export default function RelatorioAgendamentosPage() {
           <input
             id="dataFim"
             type="date"
-            className="w-full rounded border border-black/15 dark:border-white/20 bg-transparent px-3 py-2 text-sm"
+            className="w-full rounded-lg border border-borda bg-superficie-alta px-3 py-2 text-sm"
             value={form.dataFim}
             onChange={(e) => setForm({ ...form, dataFim: e.target.value })}
           />
@@ -138,7 +138,7 @@ export default function RelatorioAgendamentosPage() {
           </label>
           <select
             id="clienteId"
-            className="w-full rounded border border-black/15 dark:border-white/20 bg-background text-foreground px-3 py-2 text-sm"
+            className="w-full rounded-lg border border-borda bg-superficie-alta text-foreground px-3 py-2 text-sm"
             value={form.clienteId}
             onChange={(e) => setForm({ ...form, clienteId: e.target.value })}
           >
@@ -156,7 +156,7 @@ export default function RelatorioAgendamentosPage() {
           </label>
           <select
             id="servicoId"
-            className="w-full rounded border border-black/15 dark:border-white/20 bg-background text-foreground px-3 py-2 text-sm"
+            className="w-full rounded-lg border border-borda bg-superficie-alta text-foreground px-3 py-2 text-sm"
             value={form.servicoId}
             onChange={(e) => setForm({ ...form, servicoId: e.target.value })}
           >
@@ -174,7 +174,7 @@ export default function RelatorioAgendamentosPage() {
           </label>
           <select
             id="profissionalId"
-            className="w-full rounded border border-black/15 dark:border-white/20 bg-background text-foreground px-3 py-2 text-sm"
+            className="w-full rounded-lg border border-borda bg-superficie-alta text-foreground px-3 py-2 text-sm"
             value={form.profissionalId}
             onChange={(e) => setForm({ ...form, profissionalId: e.target.value })}
           >
@@ -191,14 +191,14 @@ export default function RelatorioAgendamentosPage() {
           <button
             type="button"
             onClick={handleLimpar}
-            className="rounded px-4 py-2 text-sm border border-black/15 dark:border-white/20"
+            className="rounded-lg px-4 py-2 text-sm border border-borda"
           >
             Limpar filtros
           </button>
           <button
             type="submit"
             disabled={carregando}
-            className="rounded bg-copper text-copper-ink hover:brightness-110 px-4 py-2 text-sm font-medium disabled:opacity-50"
+            className="rounded-lg bg-copper text-copper-ink hover:brightness-110 px-4 py-2 text-sm font-medium disabled:opacity-50"
           >
             {carregando ? 'Gerando...' : 'Gerar relatório'}
           </button>
@@ -213,35 +213,35 @@ export default function RelatorioAgendamentosPage() {
             {STATUS_ORDEM.map((status) => (
               <div
                 key={status}
-                className="rounded border border-black/10 dark:border-white/15 p-4"
+                className="rounded-lg border border-borda p-4"
               >
-                <p className="text-sm text-black/60 dark:text-white/60">{STATUS_LABEL[status]}</p>
+                <p className="text-sm text-white/60">{STATUS_LABEL[status]}</p>
                 <p className="text-2xl font-semibold">{relatorio.totais[status]}</p>
               </div>
             ))}
           </div>
 
           <div className="flex items-center justify-between mb-3">
-            <p className="text-sm text-black/60 dark:text-white/60">
+            <p className="text-sm text-white/60">
               {relatorio.total} agendamento(s) no período
             </p>
             <button
               onClick={() => exportarAgendamentosPdf(relatorio, descricaoFiltros)}
               disabled={relatorio.total === 0}
-              className="rounded bg-copper text-copper-ink hover:brightness-110 px-3 py-1.5 text-sm font-medium disabled:opacity-50"
+              className="rounded-lg bg-copper text-copper-ink hover:brightness-110 px-3 py-1.5 text-sm font-medium disabled:opacity-50"
             >
               Exportar PDF
             </button>
           </div>
 
           {relatorio.total === 0 ? (
-            <p className="text-sm text-black/60 dark:text-white/60">
+            <p className="text-sm text-white/60">
               Não há agendamentos para o período selecionado.
             </p>
           ) : (
             <table className="w-full text-sm border-collapse">
               <thead>
-                <tr className="text-left border-b border-black/10 dark:border-white/15">
+                <tr className="text-left border-b border-borda">
                   <th className="py-2 pr-4 font-medium">Data e horário</th>
                   <th className="py-2 pr-4 font-medium">Cliente</th>
                   <th className="py-2 pr-4 font-medium">Serviço</th>
@@ -251,7 +251,7 @@ export default function RelatorioAgendamentosPage() {
               </thead>
               <tbody>
                 {relatorio.agendamentos.map((a) => (
-                  <tr key={a.id} className="border-b border-black/5 dark:border-white/10">
+                  <tr key={a.id} className="border-b border-borda/60">
                     <td className="py-2 pr-4 whitespace-nowrap">
                       {new Date(a.dataHora).toLocaleString('pt-BR')}
                     </td>

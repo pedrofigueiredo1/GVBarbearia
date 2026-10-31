@@ -67,7 +67,7 @@ function RedefinirSenhaForm() {
                 minLength={6}
                 maxLength={72}
                 autoFocus
-                className="w-full rounded border border-black/15 dark:border-white/20 bg-transparent px-3 py-2 text-sm"
+                className="w-full rounded-lg border border-borda bg-superficie-alta px-3 py-2 text-sm"
                 value={novaSenha}
                 onChange={(e) => setNovaSenha(e.target.value)}
               />
@@ -83,7 +83,7 @@ function RedefinirSenhaForm() {
                 required
                 minLength={6}
                 maxLength={72}
-                className="w-full rounded border border-black/15 dark:border-white/20 bg-transparent px-3 py-2 text-sm"
+                className="w-full rounded-lg border border-borda bg-superficie-alta px-3 py-2 text-sm"
                 value={confirmacao}
                 onChange={(e) => setConfirmacao(e.target.value)}
               />
@@ -94,7 +94,7 @@ function RedefinirSenhaForm() {
             <button
               type="submit"
               disabled={salvando}
-              className="rounded bg-copper text-copper-ink hover:brightness-110 px-4 py-2 text-sm font-medium disabled:opacity-50"
+              className="rounded-lg bg-copper text-copper-ink hover:brightness-110 px-4 py-2 text-sm font-medium disabled:opacity-50"
             >
               {salvando ? 'Salvando...' : 'Redefinir senha'}
             </button>

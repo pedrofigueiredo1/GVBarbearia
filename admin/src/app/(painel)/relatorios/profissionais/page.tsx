@@ -71,7 +71,7 @@ export default function RelatorioAtendimentoProfissionalPage() {
           <input
             id="dataInicio"
             type="date"
-            className="rounded border border-black/15 dark:border-white/20 bg-transparent px-3 py-2 text-sm"
+            className="rounded-lg border border-borda bg-superficie-alta px-3 py-2 text-sm"
             value={dataInicio}
             onChange={(e) => setDataInicio(e.target.value)}
           />
@@ -83,7 +83,7 @@ export default function RelatorioAtendimentoProfissionalPage() {
           <input
             id="dataFim"
             type="date"
-            className="rounded border border-black/15 dark:border-white/20 bg-transparent px-3 py-2 text-sm"
+            className="rounded-lg border border-borda bg-superficie-alta px-3 py-2 text-sm"
             value={dataFim}
             onChange={(e) => setDataFim(e.target.value)}
           />
@@ -94,7 +94,7 @@ export default function RelatorioAtendimentoProfissionalPage() {
           </label>
           <select
             id="profissionalId"
-            className="rounded border border-black/15 dark:border-white/20 bg-background text-foreground px-3 py-2 text-sm"
+            className="rounded-lg border border-borda bg-superficie-alta text-foreground px-3 py-2 text-sm"
             value={profissionalId}
             onChange={(e) => setProfissionalId(e.target.value)}
           >
@@ -109,7 +109,7 @@ export default function RelatorioAtendimentoProfissionalPage() {
         <button
           type="submit"
           disabled={carregando}
-          className="rounded bg-copper text-copper-ink hover:brightness-110 px-4 py-2 text-sm font-medium disabled:opacity-50"
+          className="rounded-lg bg-copper text-copper-ink hover:brightness-110 px-4 py-2 text-sm font-medium disabled:opacity-50"
         >
           {carregando ? 'Gerando...' : 'Gerar relatório'}
         </button>
@@ -118,7 +118,7 @@ export default function RelatorioAtendimentoProfissionalPage() {
       {erro && <p className="text-sm text-red-600 border border-red-200 rounded p-3">{erro}</p>}
 
       {relatorio && !erro && relatorio.totalAtendimentos === 0 && (
-        <p className="text-sm text-black/60 dark:text-white/60">
+        <p className="text-sm text-white/60">
           Não há atendimentos concluídos para o período selecionado.
         </p>
       )}
@@ -126,19 +126,19 @@ export default function RelatorioAtendimentoProfissionalPage() {
       {relatorio && !erro && relatorio.totalAtendimentos > 0 && (
         <>
           <div className="flex items-center justify-between mb-3">
-            <p className="text-sm text-black/60 dark:text-white/60">
+            <p className="text-sm text-white/60">
               {relatorio.totalAtendimentos} atendimento(s) concluído(s) no período
             </p>
             <button
               onClick={() => exportarAtendimentoProfissionalPdf(relatorio, descricaoFiltros)}
-              className="rounded bg-copper text-copper-ink hover:brightness-110 px-3 py-1.5 text-sm font-medium"
+              className="rounded-lg bg-copper text-copper-ink hover:brightness-110 px-3 py-1.5 text-sm font-medium"
             >
               Exportar PDF
             </button>
           </div>
           <table className="w-full text-sm border-collapse">
             <thead>
-              <tr className="text-left border-b border-black/10 dark:border-white/15">
+              <tr className="text-left border-b border-borda">
                 <th className="py-2 pr-4 font-medium">Profissional</th>
                 <th className="py-2 pr-4 font-medium">Atendimentos</th>
                 <th className="py-2 pr-4 font-medium">Serviços mais realizados</th>
@@ -147,10 +147,10 @@ export default function RelatorioAtendimentoProfissionalPage() {
             </thead>
             <tbody>
               {relatorio.profissionais.map((p) => (
-                <tr key={p.profissionalId} className="border-b border-black/5 dark:border-white/10 align-top">
+                <tr key={p.profissionalId} className="border-b border-borda/60 align-top">
                   <td className="py-2 pr-4">
                     {p.nome}
-                    <span className="block text-xs text-black/60 dark:text-white/60">
+                    <span className="block text-xs text-white/60">
                       {p.especialidade}
                     </span>
                   </td>

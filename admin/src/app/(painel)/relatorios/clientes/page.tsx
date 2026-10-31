@@ -64,7 +64,7 @@ export default function RelatorioClientesPage() {
           <input
             id="dataInicio"
             type="date"
-            className="rounded border border-black/15 dark:border-white/20 bg-transparent px-3 py-2 text-sm"
+            className="rounded-lg border border-borda bg-superficie-alta px-3 py-2 text-sm"
             value={dataInicio}
             onChange={(e) => setDataInicio(e.target.value)}
           />
@@ -76,7 +76,7 @@ export default function RelatorioClientesPage() {
           <input
             id="dataFim"
             type="date"
-            className="rounded border border-black/15 dark:border-white/20 bg-transparent px-3 py-2 text-sm"
+            className="rounded-lg border border-borda bg-superficie-alta px-3 py-2 text-sm"
             value={dataFim}
             onChange={(e) => setDataFim(e.target.value)}
           />
@@ -84,7 +84,7 @@ export default function RelatorioClientesPage() {
         <button
           type="submit"
           disabled={carregando}
-          className="rounded bg-copper text-copper-ink hover:brightness-110 px-4 py-2 text-sm font-medium disabled:opacity-50"
+          className="rounded-lg bg-copper text-copper-ink hover:brightness-110 px-4 py-2 text-sm font-medium disabled:opacity-50"
         >
           {carregando ? 'Gerando...' : 'Gerar relatório'}
         </button>
@@ -93,7 +93,7 @@ export default function RelatorioClientesPage() {
       {erro && <p className="text-sm text-red-600 border border-red-200 rounded p-3">{erro}</p>}
 
       {relatorio && !erro && relatorio.totalClientes === 0 && (
-        <p className="text-sm text-black/60 dark:text-white/60">Não há clientes cadastrados.</p>
+        <p className="text-sm text-white/60">Não há clientes cadastrados.</p>
       )}
 
       {relatorio && !erro && relatorio.totalClientes > 0 && (
@@ -101,23 +101,23 @@ export default function RelatorioClientesPage() {
           <div className="flex justify-end mb-3">
             <button
               onClick={() => exportarClientesPdf(relatorio, descricaoFiltros)}
-              className="rounded bg-copper text-copper-ink hover:brightness-110 px-3 py-1.5 text-sm font-medium"
+              className="rounded-lg bg-copper text-copper-ink hover:brightness-110 px-3 py-1.5 text-sm font-medium"
             >
               Exportar PDF
             </button>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
-            <div className="rounded border border-black/10 dark:border-white/15 p-4">
-              <p className="text-sm text-black/60 dark:text-white/60">Clientes cadastrados</p>
+            <div className="rounded-lg border border-borda p-4">
+              <p className="text-sm text-white/60">Clientes cadastrados</p>
               <p className="text-2xl font-semibold">{relatorio.totalClientes}</p>
             </div>
-            <div className="rounded border border-black/10 dark:border-white/15 p-4">
-              <p className="text-sm text-black/60 dark:text-white/60">Novos no período</p>
+            <div className="rounded-lg border border-borda p-4">
+              <p className="text-sm text-white/60">Novos no período</p>
               <p className="text-2xl font-semibold">{relatorio.novosNoPeriodo}</p>
             </div>
-            <div className="rounded border border-black/10 dark:border-white/15 p-4">
-              <p className="text-sm text-black/60 dark:text-white/60">
+            <div className="rounded-lg border border-borda p-4">
+              <p className="text-sm text-white/60">
                 Frequentes (5+ concluídos)
               </p>
               <p className="text-2xl font-semibold">{relatorio.totalFrequentes}</p>
@@ -126,7 +126,7 @@ export default function RelatorioClientesPage() {
 
           <table className="w-full text-sm border-collapse">
             <thead>
-              <tr className="text-left border-b border-black/10 dark:border-white/15">
+              <tr className="text-left border-b border-borda">
                 <th className="py-2 pr-4 font-medium">Cliente</th>
                 <th className="py-2 pr-4 font-medium">Cadastro</th>
                 <th className="py-2 pr-4 font-medium">Agendamentos</th>
@@ -137,10 +137,10 @@ export default function RelatorioClientesPage() {
             </thead>
             <tbody>
               {relatorio.clientes.map((c) => (
-                <tr key={c.clienteId} className="border-b border-black/5 dark:border-white/10">
+                <tr key={c.clienteId} className="border-b border-borda/60">
                   <td className="py-2 pr-4">
                     {c.nome}
-                    <span className="block text-xs text-black/60 dark:text-white/60">{c.email}</span>
+                    <span className="block text-xs text-white/60">{c.email}</span>
                   </td>
                   <td className="py-2 pr-4 whitespace-nowrap">
                     {new Date(c.criadoEm).toLocaleDateString('pt-BR')}

@@ -44,7 +44,7 @@ export default function EsqueciSenhaPage() {
           <p className="text-sm">{mensagem}</p>
         ) : (
           <>
-            <p className="text-sm text-black/60 dark:text-white/60">
+            <p className="text-sm text-white/60">
               Informe o e-mail cadastrado. Enviaremos um link para você criar uma nova senha.
             </p>
             <div>
@@ -56,7 +56,7 @@ export default function EsqueciSenhaPage() {
                 type="email"
                 required
                 autoFocus
-                className="w-full rounded border border-black/15 dark:border-white/20 bg-transparent px-3 py-2 text-sm"
+                className="w-full rounded-lg border border-borda bg-superficie-alta px-3 py-2 text-sm"
                 value={loginInput}
                 onChange={(e) => setLoginInput(e.target.value)}
               />
@@ -67,7 +67,7 @@ export default function EsqueciSenhaPage() {
             <button
               type="submit"
               disabled={enviando}
-              className="rounded bg-copper text-copper-ink hover:brightness-110 px-4 py-2 text-sm font-medium disabled:opacity-50"
+              className="rounded-lg bg-copper text-copper-ink hover:brightness-110 px-4 py-2 text-sm font-medium disabled:opacity-50"
             >
               {enviando ? 'Enviando...' : 'Enviar link'}
             </button>

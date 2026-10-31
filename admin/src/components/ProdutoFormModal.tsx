@@ -50,8 +50,8 @@ export function ProdutoFormModal({ produto, onClose, onSalvar }: Props) {
   }
 
   return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50">
-      <div className="bg-background text-foreground rounded-lg shadow-lg w-full max-w-md p-6 border border-black/10 dark:border-white/15">
+    <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50">
+      <div className="bg-superficie text-foreground rounded-xl shadow-xl w-full max-w-md p-6 border border-borda">
         <h3 className="text-lg font-semibold mb-4">
           {produto ? 'Editar produto' : 'Novo produto'}
         </h3>
@@ -65,7 +65,7 @@ export function ProdutoFormModal({ produto, onClose, onSalvar }: Props) {
               id="nome"
               required
               maxLength={100}
-              className="w-full rounded border border-black/15 dark:border-white/20 bg-transparent px-3 py-2 text-sm"
+              className="w-full rounded-lg border border-borda bg-superficie-alta px-3 py-2 text-sm"
               value={form.nome}
               onChange={(e) => setForm({ ...form, nome: e.target.value })}
             />
@@ -80,7 +80,7 @@ export function ProdutoFormModal({ produto, onClose, onSalvar }: Props) {
               required
               maxLength={500}
               rows={3}
-              className="w-full rounded border border-black/15 dark:border-white/20 bg-transparent px-3 py-2 text-sm resize-none"
+              className="w-full rounded-lg border border-borda bg-superficie-alta px-3 py-2 text-sm resize-none"
               value={form.descricao}
               onChange={(e) => setForm({ ...form, descricao: e.target.value })}
             />
@@ -96,7 +96,7 @@ export function ProdutoFormModal({ produto, onClose, onSalvar }: Props) {
               type="number"
               min="0.01"
               step="0.01"
-              className="w-full rounded border border-black/15 dark:border-white/20 bg-transparent px-3 py-2 text-sm"
+              className="w-full rounded-lg border border-borda bg-superficie-alta px-3 py-2 text-sm"
               value={form.preco}
               onChange={(e) => setForm({ ...form, preco: e.target.value })}
             />
@@ -108,14 +108,14 @@ export function ProdutoFormModal({ produto, onClose, onSalvar }: Props) {
             <button
               type="button"
               onClick={onClose}
-              className="rounded px-4 py-2 text-sm border border-black/15 dark:border-white/20"
+              className="rounded-lg px-4 py-2 text-sm border border-borda"
             >
               Cancelar
             </button>
             <button
               type="submit"
               disabled={salvando}
-              className="rounded bg-copper text-copper-ink hover:brightness-110 px-4 py-2 text-sm font-medium disabled:opacity-50"
+              className="rounded-lg bg-copper text-copper-ink hover:brightness-110 px-4 py-2 text-sm font-medium disabled:opacity-50"
             >
               {salvando ? 'Salvando...' : 'Salvar'}
             </button>

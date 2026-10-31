@@ -84,21 +84,21 @@ export default function BarbeariaPage() {
         {!editando && (
           <button
             onClick={iniciarEdicao}
-            className="rounded bg-copper text-copper-ink hover:brightness-110 px-4 py-2 text-sm font-medium"
+            className="rounded-lg bg-copper text-copper-ink hover:brightness-110 px-4 py-2 text-sm font-medium"
           >
             {barbearia ? 'Editar informações' : 'Cadastrar informações'}
           </button>
         )}
       </div>
 
-      {carregando && <p className="text-sm text-black/60 dark:text-white/60">Carregando...</p>}
+      {carregando && <p className="text-sm text-white/60">Carregando...</p>}
 
       {!carregando && erro && (
         <p className="text-sm text-red-600 border border-red-200 rounded p-3">{erro}</p>
       )}
 
       {!carregando && !erro && !editando && !barbearia && (
-        <p className="text-sm text-black/60 dark:text-white/60">
+        <p className="text-sm text-white/60">
           Nenhuma informação cadastrada no momento.
         </p>
       )}
@@ -106,19 +106,19 @@ export default function BarbeariaPage() {
       {!carregando && !erro && !editando && barbearia && (
         <dl className="max-w-md flex flex-col gap-3 text-sm">
           <div>
-            <dt className="text-black/60 dark:text-white/60">Nome</dt>
+            <dt className="text-white/60">Nome</dt>
             <dd>{barbearia.nome}</dd>
           </div>
           <div>
-            <dt className="text-black/60 dark:text-white/60">Endereço</dt>
+            <dt className="text-white/60">Endereço</dt>
             <dd>{barbearia.endereco}</dd>
           </div>
           <div>
-            <dt className="text-black/60 dark:text-white/60">Telefone</dt>
+            <dt className="text-white/60">Telefone</dt>
             <dd>{barbearia.telefone}</dd>
           </div>
           <div>
-            <dt className="text-black/60 dark:text-white/60">Horário de funcionamento</dt>
+            <dt className="text-white/60">Horário de funcionamento</dt>
             <dd>{barbearia.horarioFuncionamento}</dd>
           </div>
         </dl>
@@ -134,7 +134,7 @@ export default function BarbeariaPage() {
               id="nome"
               required
               maxLength={100}
-              className="w-full rounded border border-black/15 dark:border-white/20 bg-transparent px-3 py-2 text-sm"
+              className="w-full rounded-lg border border-borda bg-superficie-alta px-3 py-2 text-sm"
               value={form.nome}
               onChange={(e) => setForm({ ...form, nome: e.target.value })}
             />
@@ -148,7 +148,7 @@ export default function BarbeariaPage() {
               id="endereco"
               required
               maxLength={200}
-              className="w-full rounded border border-black/15 dark:border-white/20 bg-transparent px-3 py-2 text-sm"
+              className="w-full rounded-lg border border-borda bg-superficie-alta px-3 py-2 text-sm"
               value={form.endereco}
               onChange={(e) => setForm({ ...form, endereco: e.target.value })}
             />
@@ -162,7 +162,7 @@ export default function BarbeariaPage() {
               id="telefone"
               required
               maxLength={20}
-              className="w-full rounded border border-black/15 dark:border-white/20 bg-transparent px-3 py-2 text-sm"
+              className="w-full rounded-lg border border-borda bg-superficie-alta px-3 py-2 text-sm"
               value={form.telefone}
               onChange={(e) => setForm({ ...form, telefone: e.target.value })}
             />
@@ -177,7 +177,7 @@ export default function BarbeariaPage() {
               required
               maxLength={200}
               placeholder="Ex: Seg a Sáb, 9h às 19h"
-              className="w-full rounded border border-black/15 dark:border-white/20 bg-transparent px-3 py-2 text-sm"
+              className="w-full rounded-lg border border-borda bg-superficie-alta px-3 py-2 text-sm"
               value={form.horarioFuncionamento}
               onChange={(e) => setForm({ ...form, horarioFuncionamento: e.target.value })}
             />
@@ -189,14 +189,14 @@ export default function BarbeariaPage() {
             <button
               type="button"
               onClick={() => setEditando(false)}
-              className="rounded px-4 py-2 text-sm border border-black/15 dark:border-white/20"
+              className="rounded-lg px-4 py-2 text-sm border border-borda"
             >
               Cancelar
             </button>
             <button
               type="submit"
               disabled={salvando}
-              className="rounded bg-copper text-copper-ink hover:brightness-110 px-4 py-2 text-sm font-medium disabled:opacity-50"
+              className="rounded-lg bg-copper text-copper-ink hover:brightness-110 px-4 py-2 text-sm font-medium disabled:opacity-50"
             >
               {salvando ? 'Salvando...' : 'Salvar'}
             </button>

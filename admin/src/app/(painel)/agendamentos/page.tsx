@@ -1,160 +1,157 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { ApiError } from '@/lib/api';
 import {
   cancelarAgendamento,
   criarAgendamento,
   editarAgendamento,
-  listarAgendamentos,
 } from '@/lib/agendamentos';
+import { formatarDataHora } from '@/lib/formatar';
 import type {
   Agendamento,
   CreateAgendamentoInput,
+  StatusAgendamento,
   UpdateAgendamentoInput,
 } from '@/types/agendamento';
-import { STATUS_LABEL } from '@/types/agendamento';
 import { AgendamentoFormModal } from '@/components/AgendamentoFormModal';
+import { CalendarioAgendamentos } from '@/components/agendamentos/CalendarioAgendamentos';
+import { DetalhesAgendamentoModal } from '@/components/agendamentos/DetalhesAgendamentoModal';
+import { ListaAgendamentos } from '@/components/agendamentos/ListaAgendamentos';
+import { useAvisos, useConfirmar } from '@/components/ui/Avisos';
+import { Botao } from '@/components/ui/Botao';
+import { CabecalhoPagina } from '@/components/ui/CabecalhoPagina';
 
-type EstadoModal = { aberto: false } | { aberto: true; agendamento: Agendamento | null };
-
-const formatarDataHora = (iso: string) =>
-  new Date(iso).toLocaleString('pt-BR', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
-
-const formatarValor = (valor: string) =>
-  new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(valor));
+type EstadoModal =
+  | { aberto: false }
+  | {
+      aberto: true;
+      agendamento: Agendamento | null;
+      inicial?: { profissionalId?: number; dataHora?: string };
+    };
 
 // "Cancelar" aqui não apaga o registro — muda o status para CANCELADO e
 // libera o horário do profissional (ver comentário em
 // agendamentos.service.ts no backend). Por isso o botão de ação chama
-// "Cancelar", não "Excluir".
+// "Cancelar", não "Excluir". A tela tem duas visões dos mesmos agendamentos: o
+// calendário (dia por barbeiro e semana) e a lista com filtros.
 export default function AgendamentosPage() {
-  const [agendamentos, setAgendamentos] = useState<Agendamento[]>([]);
-  const [carregando, setCarregando] = useState(true);
-  const [erro, setErro] = useState<string | null>(null);
+  const avisos = useAvisos();
+  const confirmar = useConfirmar();
+  const [aba, setAba] = useState<'calendario' | 'lista'>('calendario');
   const [modal, setModal] = useState<EstadoModal>({ aberto: false });
-
-  async function carregar() {
-    setCarregando(true);
-    setErro(null);
-    try {
-      setAgendamentos(await listarAgendamentos());
-    } catch (err) {
-      setErro(
-        err instanceof ApiError
-          ? err.message
-          : 'Não foi possível carregar os agendamentos. Verifique se a API está no ar.',
-      );
-    } finally {
-      setCarregando(false);
-    }
-  }
-
-  useEffect(() => {
-    carregar();
-  }, []);
+  const [detalhes, setDetalhes] = useState<Agendamento | null>(null);
+  // Sobe a cada mudança para o calendário e a lista buscarem de novo.
+  const [versao, setVersao] = useState(0);
+  const recarregar = () => setVersao((v) => v + 1);
 
   async function handleSalvar(data: CreateAgendamentoInput | UpdateAgendamentoInput) {
-    if (modal.aberto && modal.agendamento) {
-      await editarAgendamento(modal.agendamento.id, data);
+    const editando = modal.aberto && modal.agendamento;
+    if (editando) {
+      await editarAgendamento(modal.agendamento!.id, data);
     } else {
       await criarAgendamento(data as CreateAgendamentoInput);
     }
     setModal({ aberto: false });
-    await carregar();
+    avisos.sucesso(editando ? 'Agendamento atualizado.' : 'Agendamento cadastrado.');
+    recarregar();
   }
 
-  async function handleCancelar(agendamento: Agendamento) {
-    const confirmado = window.confirm(
-      `Cancelar o agendamento de "${agendamento.cliente.nome}" em ${formatarDataHora(agendamento.dataHora)}?`,
-    );
-    if (!confirmado) return;
-
+  async function mudarStatus(agendamento: Agendamento, status: StatusAgendamento, mensagem: string) {
     try {
-      await cancelarAgendamento(agendamento.id);
-      await carregar();
+      await editarAgendamento(agendamento.id, { status });
+      avisos.sucesso(mensagem);
+      setDetalhes(null);
+      recarregar();
     } catch (err) {
-      alert(err instanceof ApiError ? err.message : 'Não foi possível cancelar o agendamento.');
+      avisos.erro(err instanceof ApiError ? err.message : 'Não foi possível atualizar o agendamento.');
     }
   }
 
+  async function handleCancelar(agendamento: Agendamento) {
+    const ok = await confirmar({
+      titulo: 'Cancelar agendamento',
+      mensagem: `Cancelar o agendamento de "${agendamento.cliente.nome}" em ${formatarDataHora(agendamento.dataHora)}? O horário será liberado.`,
+      textoConfirmar: 'Cancelar agendamento',
+    });
+    if (!ok) return;
+
+    try {
+      await cancelarAgendamento(agendamento.id);
+      avisos.sucesso('Agendamento cancelado.');
+      setDetalhes(null);
+      recarregar();
+    } catch (err) {
+      avisos.erro(err instanceof ApiError ? err.message : 'Não foi possível cancelar o agendamento.');
+    }
+  }
+
+  const confirmarAgendamento = (a: Agendamento) => mudarStatus(a, 'CONFIRMADO', 'Agendamento confirmado.');
+  const concluirAgendamento = (a: Agendamento) => mudarStatus(a, 'CONCLUIDO', 'Atendimento concluído.');
+  const editar = (a: Agendamento) => {
+    setDetalhes(null);
+    setModal({ aberto: true, agendamento: a });
+  };
+
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-semibold">Agendamentos</h2>
-        <button
-          onClick={() => setModal({ aberto: true, agendamento: null })}
-          className="rounded bg-copper text-copper-ink hover:brightness-110 px-4 py-2 text-sm font-medium"
-        >
-          + Novo agendamento
-        </button>
+      <CabecalhoPagina titulo="Agendamentos" subtitulo="Agenda de cada barbeiro e lista completa.">
+        <Botao icone="mais" onClick={() => setModal({ aberto: true, agendamento: null })}>
+          Novo agendamento
+        </Botao>
+      </CabecalhoPagina>
+
+      <div className="mb-5 inline-flex rounded-lg border border-borda bg-superficie p-0.5 text-sm">
+        {(
+          [
+            ['calendario', 'Calendário'],
+            ['lista', 'Lista'],
+          ] as const
+        ).map(([valor, rotulo]) => (
+          <button
+            key={valor}
+            onClick={() => setAba(valor)}
+            aria-pressed={aba === valor}
+            className={`rounded-md px-4 py-1.5 ${
+              aba === valor ? 'bg-copper font-medium text-copper-ink' : 'text-white/70 hover:text-foreground'
+            }`}
+          >
+            {rotulo}
+          </button>
+        ))}
       </div>
 
-      {carregando && <p className="text-sm text-black/60 dark:text-white/60">Carregando...</p>}
-
-      {!carregando && erro && (
-        <p className="text-sm text-red-600 border border-red-200 rounded p-3">{erro}</p>
+      {aba === 'calendario' ? (
+        <CalendarioAgendamentos
+          versao={versao}
+          aoNovo={(inicial) => setModal({ aberto: true, agendamento: null, inicial })}
+          aoAbrir={setDetalhes}
+        />
+      ) : (
+        <ListaAgendamentos
+          versao={versao}
+          aoEditar={editar}
+          aoConfirmar={confirmarAgendamento}
+          aoConcluir={concluirAgendamento}
+          aoCancelar={handleCancelar}
+        />
       )}
 
-      {!carregando && !erro && agendamentos.length === 0 && (
-        <p className="text-sm text-black/60 dark:text-white/60">Nenhum agendamento cadastrado.</p>
-      )}
-
-      {!carregando && !erro && agendamentos.length > 0 && (
-        <table className="w-full text-sm border-collapse">
-          <thead>
-            <tr className="text-left border-b border-black/10 dark:border-white/15">
-              <th className="py-2 pr-4 font-medium">Cliente</th>
-              <th className="py-2 pr-4 font-medium">Serviço</th>
-              <th className="py-2 pr-4 font-medium">Profissional</th>
-              <th className="py-2 pr-4 font-medium">Data/Hora</th>
-              <th className="py-2 pr-4 font-medium">Status</th>
-              <th className="py-2 pr-4 font-medium">Ações</th>
-            </tr>
-          </thead>
-          <tbody>
-            {agendamentos.map((agendamento) => (
-              <tr key={agendamento.id} className="border-b border-black/5 dark:border-white/10">
-                <td className="py-2 pr-4">{agendamento.cliente.nome}</td>
-                <td className="py-2 pr-4">
-                  {agendamento.servico.nome} ({formatarValor(agendamento.servico.valor)})
-                </td>
-                <td className="py-2 pr-4">{agendamento.profissional.nome}</td>
-                <td className="py-2 pr-4 whitespace-nowrap">
-                  {formatarDataHora(agendamento.dataHora)}
-                </td>
-                <td className="py-2 pr-4">{STATUS_LABEL[agendamento.status]}</td>
-                <td className="py-2 pr-4 whitespace-nowrap">
-                  <button
-                    onClick={() => setModal({ aberto: true, agendamento })}
-                    className="text-sm underline mr-4"
-                  >
-                    Editar
-                  </button>
-                  {agendamento.status !== 'CANCELADO' && (
-                    <button
-                      onClick={() => handleCancelar(agendamento)}
-                      className="text-sm underline text-red-600"
-                    >
-                      Cancelar
-                    </button>
-                  )}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      {detalhes && (
+        <DetalhesAgendamentoModal
+          agendamento={detalhes}
+          onClose={() => setDetalhes(null)}
+          onEditar={() => editar(detalhes)}
+          onConfirmar={() => confirmarAgendamento(detalhes)}
+          onConcluir={() => concluirAgendamento(detalhes)}
+          onCancelar={() => handleCancelar(detalhes)}
+        />
       )}
 
       {modal.aberto && (
         <AgendamentoFormModal
           agendamento={modal.agendamento}
+          inicial={modal.inicial}
           onClose={() => setModal({ aberto: false })}
           onSalvar={handleSalvar}
         />

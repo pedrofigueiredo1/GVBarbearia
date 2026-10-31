@@ -38,7 +38,7 @@ export default function RelatoriosPage() {
   return (
     <div>
       <h2 className="text-2xl font-semibold mb-2">Relatórios</h2>
-      <p className="text-sm text-black/60 dark:text-white/60 mb-6">
+      <p className="text-sm text-white/60 mb-6">
         Escolha qual relatório deseja emitir ou consultar.
       </p>
 
@@ -47,10 +47,10 @@ export default function RelatoriosPage() {
           <Link
             key={relatorio.href}
             href={relatorio.href}
-            className="rounded border border-black/10 dark:border-white/15 p-4 hover:bg-black/5 dark:hover:bg-white/10"
+            className="rounded-lg border border-borda p-4 hover:bg-white/10"
           >
             <h3 className="font-medium mb-1">{relatorio.titulo}</h3>
-            <p className="text-sm text-black/60 dark:text-white/60">{relatorio.descricao}</p>
+            <p className="text-sm text-white/60">{relatorio.descricao}</p>
           </Link>
         ))}
       </div>

@@ -1,10 +1,11 @@
 'use client';
 
-import { FormEvent, useState } from 'react';
+import { FormEvent, useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ApiError } from '@/lib/api';
+import { isAuthenticated } from '@/lib/auth';
 import { login } from '@/lib/authApi';
 
 // Reflete os Critérios da US Login de Administrador: usuário (e-mail) e
@@ -16,13 +17,18 @@ export default function LoginPage() {
   const [erro, setErro] = useState<string | null>(null);
   const [entrando, setEntrando] = useState(false);
 
+  // Quem já está logado vai direto para o dashboard, sem ver o login de novo.
+  useEffect(() => {
+    if (isAuthenticated()) router.replace('/');
+  }, [router]);
+
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
     setErro(null);
     setEntrando(true);
     try {
       await login(loginInput, senha);
-      router.push('/');
+      router.replace('/');
     } catch (err) {
       setErro(
         err instanceof ApiError ? err.message : 'Não foi possível entrar. Verifique se a API está no ar.',
@@ -52,7 +58,7 @@ export default function LoginPage() {
             type="email"
             required
             autoFocus
-            className="w-full rounded border border-black/15 dark:border-white/20 bg-transparent px-3 py-2 text-sm"
+            className="w-full rounded-lg border border-borda bg-superficie-alta px-3 py-2 text-sm"
             value={loginInput}
             onChange={(e) => setLoginInput(e.target.value)}
           />
@@ -66,7 +72,7 @@ export default function LoginPage() {
             id="senha"
             type="password"
             required
-            className="w-full rounded border border-black/15 dark:border-white/20 bg-transparent px-3 py-2 text-sm"
+            className="w-full rounded-lg border border-borda bg-superficie-alta px-3 py-2 text-sm"
             value={senha}
             onChange={(e) => setSenha(e.target.value)}
           />
@@ -77,7 +83,7 @@ export default function LoginPage() {
         <button
           type="submit"
           disabled={entrando}
-          className="rounded bg-copper text-copper-ink hover:brightness-110 px-4 py-2 text-sm font-medium disabled:opacity-50 mt-2"
+          className="rounded-lg bg-copper text-copper-ink hover:brightness-110 px-4 py-2 text-sm font-medium disabled:opacity-50 mt-2"
         >
           {entrando ? 'Entrando...' : 'Entrar'}
         </button>
