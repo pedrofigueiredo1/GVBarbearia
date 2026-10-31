@@ -20,6 +20,7 @@ export default function EsqueciSenhaScreen() {
 
   async function handleEnviar() {
     setErro(null);
+    setMensagem(null);
     if (!email.trim()) {
       setErro('Informe o e-mail cadastrado.');
       return;

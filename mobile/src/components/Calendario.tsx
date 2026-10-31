@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { hojeNaBarbearia } from '@/lib/formatar';
 import { cores, raio } from '@/tema';
 
 interface Props {
@@ -37,7 +38,7 @@ const chave = (ano: number, mes: number, dia: number) => `${ano}-${dois(mes + 1)
 // Calendário mensal no visual do app: toque num dia para escolher; dias que já
 // passaram, os depois do limite e os de folga ficam apagados.
 export function Calendario({ selecionada, onSelecionar, diasAdiante = 60 }: Props) {
-  const agora = new Date();
+  const agora = hojeNaBarbearia();
   const hoje = chave(agora.getFullYear(), agora.getMonth(), agora.getDate());
   const limiteData = new Date(agora.getFullYear(), agora.getMonth(), agora.getDate() + diasAdiante);
   const limite = chave(limiteData.getFullYear(), limiteData.getMonth(), limiteData.getDate());
