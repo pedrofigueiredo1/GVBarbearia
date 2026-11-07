@@ -1,12 +1,15 @@
 'use client';
 
 import { FormEvent, useState } from 'react';
+import { urlDaFoto } from '@/lib/fotos';
+import { SEM_ALTERACAO_DE_FOTO, type AlteracaoDeFoto } from '@/types/foto';
+import { CampoFoto } from '@/components/ui/CampoFoto';
 import type { Profissional, ProfissionalInput } from '@/types/profissional';
 
 interface Props {
   profissional?: Profissional | null;
   onClose: () => void;
-  onSalvar: (data: ProfissionalInput) => Promise<void>;
+  onSalvar: (data: ProfissionalInput, foto: AlteracaoDeFoto) => Promise<void>;
 }
 
 const campoVazio: ProfissionalInput = {
@@ -28,6 +31,7 @@ export function ProfissionalFormModal({ profissional, onClose, onSalvar }: Props
         }
       : campoVazio,
   );
+  const [foto, setFoto] = useState<AlteracaoDeFoto>(SEM_ALTERACAO_DE_FOTO);
   const [erro, setErro] = useState<string | null>(null);
   const [salvando, setSalvando] = useState(false);
 
@@ -36,7 +40,7 @@ export function ProfissionalFormModal({ profissional, onClose, onSalvar }: Props
     setErro(null);
     setSalvando(true);
     try {
-      await onSalvar(form);
+      await onSalvar(form, foto);
     } catch (err) {
       setErro(err instanceof Error ? err.message : 'Erro ao salvar profissional.');
     } finally {
@@ -46,12 +50,18 @@ export function ProfissionalFormModal({ profissional, onClose, onSalvar }: Props
 
   return (
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50">
-      <div className="bg-superficie text-foreground rounded-xl shadow-xl w-full max-w-md p-6 border border-borda">
+      <div className="bg-superficie text-foreground rounded-xl shadow-xl w-full max-w-md max-h-[92vh] overflow-y-auto p-6 border border-borda">
         <h3 className="text-lg font-semibold mb-4">
           {profissional ? 'Editar profissional' : 'Novo profissional'}
         </h3>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <CampoFoto
+            urlAtual={profissional ? urlDaFoto('profissionais', profissional.id, profissional.fotoAtualizadaEm) : null}
+            valor={foto}
+            onChange={setFoto}
+          />
+
           <div>
             <label className="block text-sm font-medium mb-1" htmlFor="nome">
               Nome

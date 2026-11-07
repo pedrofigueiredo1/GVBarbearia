@@ -1,12 +1,15 @@
 'use client';
 
 import { FormEvent, useState } from 'react';
+import { urlDaFoto } from '@/lib/fotos';
+import { SEM_ALTERACAO_DE_FOTO, type AlteracaoDeFoto } from '@/types/foto';
+import { CampoFoto } from '@/components/ui/CampoFoto';
 import type { Produto, ProdutoInput } from '@/types/produto';
 
 interface Props {
   produto?: Produto | null;
   onClose: () => void;
-  onSalvar: (data: ProdutoInput) => Promise<void>;
+  onSalvar: (data: ProdutoInput, foto: AlteracaoDeFoto) => Promise<void>;
 }
 
 interface FormState {
@@ -29,6 +32,7 @@ export function ProdutoFormModal({ produto, onClose, onSalvar }: Props) {
       ? { nome: produto.nome, descricao: produto.descricao, preco: produto.preco }
       : campoVazio,
   );
+  const [foto, setFoto] = useState<AlteracaoDeFoto>(SEM_ALTERACAO_DE_FOTO);
   const [erro, setErro] = useState<string | null>(null);
   const [salvando, setSalvando] = useState(false);
 
@@ -41,7 +45,7 @@ export function ProdutoFormModal({ produto, onClose, onSalvar }: Props) {
         nome: form.nome,
         descricao: form.descricao,
         preco: Number(form.preco.replace(',', '.')),
-      });
+      }, foto);
     } catch (err) {
       setErro(err instanceof Error ? err.message : 'Erro ao salvar produto.');
     } finally {
@@ -51,12 +55,18 @@ export function ProdutoFormModal({ produto, onClose, onSalvar }: Props) {
 
   return (
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50">
-      <div className="bg-superficie text-foreground rounded-xl shadow-xl w-full max-w-md p-6 border border-borda">
+      <div className="bg-superficie text-foreground rounded-xl shadow-xl w-full max-w-md max-h-[92vh] overflow-y-auto p-6 border border-borda">
         <h3 className="text-lg font-semibold mb-4">
           {produto ? 'Editar produto' : 'Novo produto'}
         </h3>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <CampoFoto
+            urlAtual={produto ? urlDaFoto('produtos', produto.id, produto.fotoAtualizadaEm) : null}
+            valor={foto}
+            onChange={setFoto}
+          />
+
           <div>
             <label className="block text-sm font-medium mb-1" htmlFor="nome">
               Nome

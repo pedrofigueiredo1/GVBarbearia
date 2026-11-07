@@ -20,7 +20,8 @@
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "db:seed": "ts-node prisma/seed.ts",
     "test:api": "node test-api/executar-todos.js",
-    "verificar:email": "node scripts/verificar-brevo.js"
+    "verificar:email": "node scripts/verificar-brevo.js",
+    "importar:fotos": "node scripts/importar-fotos-barbeiros.js"
   },
   "dependencies": {
     "@nestjs/common": "^10.0.0",
@@ -40,7 +41,8 @@
     "passport-jwt": "^4.0.1",
     "prisma": "6.19.3",
     "reflect-metadata": "^0.2.0",
-    "rxjs": "^7.8.1"
+    "rxjs": "^7.8.1",
+    "sharp": "^0.34.5"
   },
   "devDependencies": {
     "@nestjs/cli": "^10.0.0",
@@ -49,6 +51,7 @@
     "@types/bcryptjs": "^2.4.6",
     "@types/express": "^5.0.0",
     "@types/jest": "^29.5.2",
+    "@types/multer": "^2.3.0",
     "@types/node": "^20.3.1",
     "@types/passport-jwt": "^4.0.1",
     "@types/supertest": "^6.0.0",

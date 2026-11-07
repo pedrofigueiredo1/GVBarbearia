@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { FotosModule } from '../fotos/fotos.module';
 import { ProdutosController } from './produtos.controller';
 import { AdicionarProduto } from './operacoes/adicionar-produto';
 import { ListarProdutos } from './operacoes/listar-produtos';
@@ -7,6 +8,7 @@ import { EditarProduto } from './operacoes/editar-produto';
 import { ExcluirProduto } from './operacoes/excluir-produto';
 
 @Module({
+  imports: [FotosModule],
   controllers: [ProdutosController],
   providers: [
     AdicionarProduto,

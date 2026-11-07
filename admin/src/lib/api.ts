@@ -1,6 +1,6 @@
 import { clearToken, getToken } from './auth';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3000';
+export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3000';
 
 export class ApiError extends Error {
   constructor(
@@ -19,11 +19,14 @@ export async function apiFetch<T>(
   options?: RequestInit,
 ): Promise<T> {
   const token = getToken();
+  // Em envio de arquivo (FormData) o navegador monta o Content-Type sozinho,
+  // com o separador das partes; por isso ele não pode ser fixado em JSON.
+  const ehArquivo = options?.body instanceof FormData;
 
   const response = await fetch(`${API_URL}${path}`, {
     ...options,
     headers: {
-      'Content-Type': 'application/json',
+      ...(ehArquivo ? {} : { 'Content-Type': 'application/json' }),
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...options?.headers,
     },

@@ -8,12 +8,15 @@ import { formatarDuracao, formatarMoeda } from '@/lib/formatar';
 import { cores, raio } from '@/tema';
 import type { Servico } from '@/types/servico';
 import { Carrossel } from './Carrossel';
+import { CartaoServicoDestaque } from './CartaoServicoDestaque';
 import { EstadoConsulta, type Consulta } from './EstadoConsulta';
 
 const FOTOS = [require('../../../assets/images/ambiente-1.jpg')];
 
 // US Consulta de Serviços (item 2.42): nome, descrição, valor e duração. Cada
-// serviço tem um "Agendar" que já abre o agendamento com ele escolhido.
+// serviço tem um "Agendar" que já abre o agendamento com ele escolhido. O mais
+// agendado (ranking automático do backend) sai num card de fogo separado, no
+// topo, e não se repete na lista.
 export function AbaServicos({ consulta }: { consulta: Consulta<Servico[]> }) {
   const [busca, setBusca] = useState('');
   const termo = busca.trim().toLowerCase();
@@ -23,9 +26,11 @@ export function AbaServicos({ consulta }: { consulta: Consulta<Servico[]> }) {
       <Carrossel fotos={FOTOS} rotulo="Foto da placa da barbearia" />
       <EstadoConsulta consulta={consulta} mensagemVazia="Nenhum serviço disponível no momento.">
         {(servicos) => {
-          const filtrados = servicos.filter((servico) =>
+          const encontrados = servicos.filter((servico) =>
             servico.nome.toLowerCase().includes(termo),
           );
+          const destaque = encontrados.find((servico) => servico.emDestaque);
+          const filtrados = encontrados.filter((servico) => servico !== destaque);
           return (
             <View style={styles.bloco}>
               <View style={styles.busca}>
@@ -41,7 +46,9 @@ export function AbaServicos({ consulta }: { consulta: Consulta<Servico[]> }) {
                 />
               </View>
 
-              {filtrados.length === 0 ? (
+              {destaque && <CartaoServicoDestaque servico={destaque} />}
+
+              {filtrados.length === 0 && !destaque ? (
                 <Text style={styles.vazio}>Nenhum serviço encontrado.</Text>
               ) : (
                 filtrados.map((servico) => (

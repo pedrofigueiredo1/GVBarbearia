@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { ApiError } from '@/lib/api';
+import { aplicarAlteracaoDeFoto, urlDaFoto } from '@/lib/fotos';
 import {
   criarProfissional,
   editarProfissional,
@@ -9,6 +10,7 @@ import {
   listarProfissionais,
 } from '@/lib/profissionais';
 import type { Profissional, ProfissionalInput } from '@/types/profissional';
+import type { AlteracaoDeFoto } from '@/types/foto';
 import type { Coluna } from '@/types/tabela';
 import { useCarregarLista } from '@/hooks/useCarregarLista';
 import { useTabelaLocal } from '@/hooks/useTabelaLocal';
@@ -18,6 +20,7 @@ import { Botao } from '@/components/ui/Botao';
 import { BotaoIcone } from '@/components/ui/BotaoIcone';
 import { CabecalhoPagina } from '@/components/ui/CabecalhoPagina';
 import { BarraDeFiltros } from '@/components/ui/Filtros';
+import { MiniaturaFoto } from '@/components/ui/MiniaturaFoto';
 import { TabelaDados } from '@/components/ui/TabelaDados';
 
 type EstadoModal =
@@ -25,6 +28,14 @@ type EstadoModal =
   | { aberto: true; profissional: Profissional | null };
 
 const COLUNAS: Coluna<Profissional>[] = [
+  {
+    chave: 'foto',
+    titulo: 'Foto',
+    className: 'w-16',
+    render: (p) => (
+      <MiniaturaFoto url={urlDaFoto('profissionais', p.id, p.fotoAtualizadaEm)} descricao={`Foto de ${p.nome}`} />
+    ),
+  },
   {
     chave: 'nome',
     titulo: 'Nome',
@@ -68,15 +79,19 @@ export default function ProfissionaisPage() {
     ordenacaoInicial: { chave: 'nome', direcao: 'asc' },
   });
 
-  async function handleSalvar(data: ProfissionalInput) {
+  async function handleSalvar(data: ProfissionalInput, foto: AlteracaoDeFoto) {
     const editando = modal.aberto && modal.profissional;
-    if (editando) {
-      await editarProfissional(modal.profissional!.id, data);
-    } else {
-      await criarProfissional(data);
-    }
+    const salvo = editando
+      ? await editarProfissional(modal.profissional!.id, data)
+      : await criarProfissional(data);
     setModal({ aberto: false });
-    avisos.sucesso(editando ? 'Profissional atualizado.' : 'Profissional cadastrado.');
+    const mensagem = editando ? 'Profissional atualizado.' : 'Profissional cadastrado.';
+    try {
+      await aplicarAlteracaoDeFoto('profissionais', salvo.id, foto);
+      avisos.sucesso(mensagem);
+    } catch (err) {
+      avisos.erro(`${mensagem} Mas a foto não foi salva: ${err instanceof Error ? err.message : 'erro desconhecido.'}`);
+    }
     await recarregar();
   }
 

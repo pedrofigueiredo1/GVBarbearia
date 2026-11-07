@@ -3,4 +3,6 @@ export interface Produto {
   nome: string;
   descricao: string;
   preco: string;
+  // Quando a foto foi trocada pela última vez (null = sem foto).
+  fotoAtualizadaEm: string | null;
 }

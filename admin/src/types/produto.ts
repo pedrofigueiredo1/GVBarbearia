@@ -5,6 +5,8 @@ export interface Produto {
   // Prisma serializa campos Decimal como string em JSON (preserva precisão
   // que um number do JS não garante), então o preço chega como string.
   preco: string;
+  // Quando a foto foi trocada pela última vez (null = sem foto).
+  fotoAtualizadaEm: string | null;
   criadoEm: string;
   atualizadoEm: string;
 }

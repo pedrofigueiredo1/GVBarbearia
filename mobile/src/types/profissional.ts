@@ -3,4 +3,6 @@ export interface Profissional {
   nome: string;
   especialidade: string;
   descricao: string;
+  // Quando a foto foi trocada pela última vez (null = sem foto).
+  fotoAtualizadaEm: string | null;
 }

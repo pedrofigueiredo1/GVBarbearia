@@ -7,7 +7,9 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   // Cabeçalhos de segurança (e remove o X-Powered-By, que revelava o Express).
-  app.use(helmet());
+  // As fotos da API são públicas e o painel (outra origem) as mostra em <img>:
+  // por isso a política de recursos entre origens é "cross-origin".
+  app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
 
   // Em produção a API fica atrás de um proxy (Render): sem isto, o IP visto seria
   // sempre o do proxy e o limite de tentativas valeria para todos juntos.

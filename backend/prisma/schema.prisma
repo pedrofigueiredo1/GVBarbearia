@@ -45,12 +45,14 @@ model Servico {
 // Entidade referente à User Story "Cadastro de Produto" (item 2.17 da documentação).
 // Campos obrigatórios definidos nos Critérios da US: nome, descrição e preço.
 model Produto {
-  id           Int      @id @default(autoincrement())
-  nome         String
-  descricao    String
-  preco        Decimal  @db.Decimal(10, 2)
-  criadoEm     DateTime @default(now())
-  atualizadoEm DateTime @updatedAt
+  id               Int       @id @default(autoincrement())
+  nome             String
+  descricao        String
+  preco            Decimal   @db.Decimal(10, 2)
+  fotoAtualizadaEm DateTime?
+  foto             Foto?
+  criadoEm         DateTime  @default(now())
+  atualizadoEm     DateTime  @updatedAt
 
   @@map("produtos")
 }
@@ -75,16 +77,16 @@ model Barbearia {
 // administrador — usado tanto para autenticação quanto para a futura
 // recuperação de senha (ainda não implementada, depende do envio de e-mail).
 model Administrador {
-  id           Int      @id @default(autoincrement())
-  nome         String
-  login        String   @unique
-  senha        String // hash bcrypt, nunca texto puro
+  id                       Int       @id @default(autoincrement())
+  nome                     String
+  login                    String    @unique
+  senha                    String // hash bcrypt, nunca texto puro
   // Recuperação de senha (US 2.2): guarda só o hash SHA-256 do token enviado
   // por e-mail, nunca o token em si, e a validade de 15 minutos.
   tokenRecuperacaoHash     String?
   tokenRecuperacaoExpiraEm DateTime?
-  criadoEm     DateTime @default(now())
-  atualizadoEm DateTime @updatedAt
+  criadoEm                 DateTime  @default(now())
+  atualizadoEm             DateTime  @updatedAt
 
   @@map("administradores")
 }
@@ -97,20 +99,20 @@ model Administrador {
 // mesmo cadastro seja usado depois para login no app (Cadastro/Login de
 // Cliente pelo app é a via alternativa, ainda não implementada).
 model Cliente {
-  id           Int           @id @default(autoincrement())
-  nome         String
-  email        String        @unique
-  telefone     String
-  senha        String // hash bcrypt, nunca texto puro
+  id                        Int           @id @default(autoincrement())
+  nome                      String
+  email                     String        @unique
+  telefone                  String
+  senha                     String // hash bcrypt, nunca texto puro
   // Recuperação de senha (US 2.39): código de 6 dígitos enviado por e-mail.
   // Guarda só o hash do código, a validade (15 minutos) e quantas tentativas
   // erradas já foram feitas — passado o limite, o código é invalidado.
   codigoRecuperacaoHash     String?
   codigoRecuperacaoExpiraEm DateTime?
   tentativasRecuperacao     Int           @default(0)
-  criadoEm     DateTime      @default(now())
-  atualizadoEm DateTime      @updatedAt
-  agendamentos Agendamento[]
+  criadoEm                  DateTime      @default(now())
+  atualizadoEm              DateTime      @updatedAt
+  agendamentos              Agendamento[]
 
   @@map("clientes")
 }

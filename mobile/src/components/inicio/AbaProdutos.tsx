@@ -1,6 +1,7 @@
 import { StyleSheet, Text, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { FotoPadrao } from '@/components/FotoPadrao';
 import { formatarMoeda } from '@/lib/formatar';
+import { urlDaFoto } from '@/lib/fotos';
 import { cores } from '@/tema';
 import type { Produto } from '@/types/produto';
 import { Carrossel } from './Carrossel';
@@ -9,7 +10,8 @@ import { EstadoConsulta, type Consulta } from './EstadoConsulta';
 const FOTOS = [require('../../../assets/images/produtos.webp')];
 
 // US Consulta de Produtos (item 2.44): nome, descrição e preço, com a foto da
-// estante de produtos da barbearia no topo.
+// estante de produtos da barbearia no topo e a foto de cada produto, cadastrada
+// pelo administrador no painel.
 export function AbaProdutos({ consulta }: { consulta: Consulta<Produto[]> }) {
   return (
     <View style={styles.aba}>
@@ -19,9 +21,10 @@ export function AbaProdutos({ consulta }: { consulta: Consulta<Produto[]> }) {
           <View>
             {produtos.map((produto) => (
               <View key={produto.id} style={styles.linha}>
-                <View style={styles.icone}>
-                  <Ionicons name="bag-handle-outline" size={24} color={cores.cobre} />
-                </View>
+                <FotoPadrao
+                  url={urlDaFoto('produtos', produto.id, produto.fotoAtualizadaEm)}
+                  descricao={`Foto de ${produto.nome}`}
+                />
                 <View style={styles.dados}>
                   <Text style={styles.nome}>{produto.nome}</Text>
                   {produto.descricao ? (
@@ -47,16 +50,6 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderBottomWidth: 1,
     borderBottomColor: cores.borda,
-  },
-  icone: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: cores.superficieAlta,
-    borderWidth: 1,
-    borderColor: cores.borda,
   },
   dados: { flex: 1, gap: 2 },
   nome: { fontSize: 16, fontWeight: '700', color: cores.texto },

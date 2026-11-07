@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { ApiError } from '@/lib/api';
+import { aplicarAlteracaoDeFoto, urlDaFoto } from '@/lib/fotos';
 import {
   criarProduto,
   editarProduto,
@@ -10,6 +11,7 @@ import {
 } from '@/lib/produtos';
 import { formatarMoeda } from '@/lib/formatar';
 import type { Produto, ProdutoInput } from '@/types/produto';
+import type { AlteracaoDeFoto } from '@/types/foto';
 import type { Coluna } from '@/types/tabela';
 import { useCarregarLista } from '@/hooks/useCarregarLista';
 import { useTabelaLocal } from '@/hooks/useTabelaLocal';
@@ -19,11 +21,20 @@ import { Botao } from '@/components/ui/Botao';
 import { BotaoIcone } from '@/components/ui/BotaoIcone';
 import { CabecalhoPagina } from '@/components/ui/CabecalhoPagina';
 import { BarraDeFiltros } from '@/components/ui/Filtros';
+import { MiniaturaFoto } from '@/components/ui/MiniaturaFoto';
 import { TabelaDados } from '@/components/ui/TabelaDados';
 
 type EstadoModal = { aberto: false } | { aberto: true; produto: Produto | null };
 
 const COLUNAS: Coluna<Produto>[] = [
+  {
+    chave: 'foto',
+    titulo: 'Foto',
+    className: 'w-16',
+    render: (p) => (
+      <MiniaturaFoto url={urlDaFoto('produtos', p.id, p.fotoAtualizadaEm)} descricao={`Foto de ${p.nome}`} />
+    ),
+  },
   {
     chave: 'nome',
     titulo: 'Nome',
@@ -68,15 +79,19 @@ export default function ProdutosPage() {
     ordenacaoInicial: { chave: 'nome', direcao: 'asc' },
   });
 
-  async function handleSalvar(data: ProdutoInput) {
+  async function handleSalvar(data: ProdutoInput, foto: AlteracaoDeFoto) {
     const editando = modal.aberto && modal.produto;
-    if (editando) {
-      await editarProduto(modal.produto!.id, data);
-    } else {
-      await criarProduto(data);
-    }
+    const salvo = editando
+      ? await editarProduto(modal.produto!.id, data)
+      : await criarProduto(data);
     setModal({ aberto: false });
-    avisos.sucesso(editando ? 'Produto atualizado.' : 'Produto cadastrado.');
+    const mensagem = editando ? 'Produto atualizado.' : 'Produto cadastrado.';
+    try {
+      await aplicarAlteracaoDeFoto('produtos', salvo.id, foto);
+      avisos.sucesso(mensagem);
+    } catch (err) {
+      avisos.erro(`${mensagem} Mas a foto não foi salva: ${err instanceof Error ? err.message : 'erro desconhecido.'}`);
+    }
     await recarregar();
   }
 
