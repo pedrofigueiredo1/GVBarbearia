@@ -7,7 +7,7 @@ type NomeIcone = keyof typeof Ionicons.glyphMap;
 
 function icone(ativo: NomeIcone, inativo: NomeIcone) {
   return ({ focused, color, size }: { focused: boolean; color: ColorValue; size: number }) => (
-    <Ionicons name={focused ? ativo : inativo} size={size} color={color} />
+    <Ionicons name={focused ? ativo : inativo} size={size} color={typeof color === 'string' ? color : cores.cobre} />
   );
 }
 
