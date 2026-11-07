@@ -7,6 +7,7 @@ import {
   criarAgendamento,
   editarAgendamento,
 } from '@/lib/agendamentos';
+import { criarBloqueio } from '@/lib/bloqueios';
 import { formatarDataHora } from '@/lib/formatar';
 import type {
   Agendamento,
@@ -14,10 +15,13 @@ import type {
   StatusAgendamento,
   UpdateAgendamentoInput,
 } from '@/types/agendamento';
+import type { BloqueioAgendaInput } from '@/types/bloqueio';
 import { AgendamentoFormModal } from '@/components/AgendamentoFormModal';
+import { BloqueioFormModal } from '@/components/BloqueioFormModal';
 import { CalendarioAgendamentos } from '@/components/agendamentos/CalendarioAgendamentos';
 import { DetalhesAgendamentoModal } from '@/components/agendamentos/DetalhesAgendamentoModal';
 import { ListaAgendamentos } from '@/components/agendamentos/ListaAgendamentos';
+import { ListaBloqueios } from '@/components/agendamentos/ListaBloqueios';
 import { useAvisos, useConfirmar } from '@/components/ui/Avisos';
 import { Botao } from '@/components/ui/Botao';
 import { CabecalhoPagina } from '@/components/ui/CabecalhoPagina';
@@ -34,11 +38,14 @@ type EstadoModal =
 // libera o horário do profissional (ver comentário em
 // agendamentos.service.ts no backend). Por isso o botão de ação chama
 // "Cancelar", não "Excluir". A tela tem duas visões dos mesmos agendamentos: o
-// calendário (dia por barbeiro e semana) e a lista com filtros.
+// calendário (dia por barbeiro e semana) e a lista com filtros. Os bloqueios de
+// agenda (feriados e ausências de barbeiros) ficam aqui também: o botão
+// "Bloquear agenda" e a aba "Bloqueios" com os que estão valendo.
 export default function AgendamentosPage() {
   const avisos = useAvisos();
   const confirmar = useConfirmar();
-  const [aba, setAba] = useState<'calendario' | 'lista'>('calendario');
+  const [aba, setAba] = useState<'calendario' | 'lista' | 'bloqueios'>('calendario');
+  const [bloqueando, setBloqueando] = useState(false);
   const [modal, setModal] = useState<EstadoModal>({ aberto: false });
   const [detalhes, setDetalhes] = useState<Agendamento | null>(null);
   // Sobe a cada mudança para o calendário e a lista buscarem de novo.
@@ -54,6 +61,20 @@ export default function AgendamentosPage() {
     }
     setModal({ aberto: false });
     avisos.sucesso(editando ? 'Agendamento atualizado.' : 'Agendamento cadastrado.');
+    recarregar();
+  }
+
+  async function handleBloquear(data: BloqueioAgendaInput) {
+    const bloqueio = await criarBloqueio(data);
+    setBloqueando(false);
+    const afetados = bloqueio.agendamentosAfetados;
+    if (afetados > 0) {
+      avisos.info(
+        `Agenda bloqueada. Atenção: ${afetados} agendamento${afetados > 1 ? 's já marcados continuam' : ' já marcado continua'} nesse período. Remarque ou cancele nesta tela.`,
+      );
+    } else {
+      avisos.sucesso('Agenda bloqueada.');
+    }
     recarregar();
   }
 
@@ -95,7 +116,13 @@ export default function AgendamentosPage() {
 
   return (
     <div>
-      <CabecalhoPagina titulo="Agendamentos" subtitulo="Agenda de cada barbeiro e lista completa.">
+      <CabecalhoPagina
+        titulo="Agendamentos"
+        subtitulo="Agenda de cada barbeiro, lista completa e bloqueios de agenda."
+      >
+        <Botao variante="secundario" icone="cancelar" onClick={() => setBloqueando(true)}>
+          Bloquear agenda
+        </Botao>
         <Botao icone="mais" onClick={() => setModal({ aberto: true, agendamento: null })}>
           Novo agendamento
         </Botao>
@@ -106,6 +133,7 @@ export default function AgendamentosPage() {
           [
             ['calendario', 'Calendário'],
             ['lista', 'Lista'],
+            ['bloqueios', 'Bloqueios'],
           ] as const
         ).map(([valor, rotulo]) => (
           <button
@@ -127,6 +155,8 @@ export default function AgendamentosPage() {
           aoNovo={(inicial) => setModal({ aberto: true, agendamento: null, inicial })}
           aoAbrir={setDetalhes}
         />
+      ) : aba === 'bloqueios' ? (
+        <ListaBloqueios key={versao} aoMudar={recarregar} />
       ) : (
         <ListaAgendamentos
           versao={versao}
@@ -146,6 +176,10 @@ export default function AgendamentosPage() {
           onConcluir={() => concluirAgendamento(detalhes)}
           onCancelar={() => handleCancelar(detalhes)}
         />
+      )}
+
+      {bloqueando && (
+        <BloqueioFormModal onClose={() => setBloqueando(false)} onSalvar={handleBloquear} />
       )}
 
       {modal.aberto && (

@@ -170,13 +170,15 @@ async function criarCliente(n, senha = 'cliente123') {
 
   // admin cria no passado
   r = await req('POST', '/agendamentos', { token: A, corpo: { clienteId: c2.id, servicoId: corte.id, profissionalId: gabriel.id, dataHora: '2020-01-06T13:00:00.000Z' } });
-  r.status === 201 ? achado('BAIXA', 'Agendamento', 'Painel aceita agendamento no passado (útil para registrar atendimento esquecido, mas sem aviso)') : ok();
+  r.status === 400 ? ok() : achado('MÉDIA', 'Agendamento', 'Painel aceita agendamento em data que já passou');
 
   // regra das 2h
   const em1h = new Date(Date.now() + 60 * 60000).toISOString();
   const em3h = new Date(Date.now() + 3 * 60 * 60000 + 7 * 60000).toISOString();
-  const a1 = await req('POST', '/agendamentos', { token: A, corpo: { clienteId: c1.id, servicoId: corte.id, profissionalId: wesley.id, dataHora: em1h } });
-  const a3 = await req('POST', '/agendamentos', { token: A, corpo: { clienteId: c1.id, servicoId: corte.id, profissionalId: gabriel.id, dataHora: em3h } });
+  // O painel só agenda dentro do expediente; para testar a regra das 2h (qualquer hora do dia), entra direto no banco.
+  const inserirEm = (profissionalId, dataHora) => ({ corpo: { id: Number(sql(`INSERT INTO agendamentos(\\"clienteId\\",\\"servicoId\\",\\"profissionalId\\",\\"dataHora\\",status,\\"atualizadoEm\\") VALUES (${c1.id},${corte.id},${profissionalId},'${dataHora}','CONFIRMADO',now()) RETURNING id`).split(String.fromCharCode(10))[0]) } });
+  const a1 = inserirEm(wesley.id, em1h);
+  const a3 = inserirEm(gabriel.id, em3h);
   (await req('DELETE', `/meus-agendamentos/${a1.corpo.id}`, { token: c1.token })).status === 400 ? ok() : achado('ALTA', 'Regra de negócio', 'Cliente cancelou com menos de 2h de antecedência');
   (await req('DELETE', `/meus-agendamentos/${a3.corpo.id}`, { token: c1.token })).status === 200 ? ok() : achado('MÉDIA', 'Regra de negócio', 'Cliente não conseguiu cancelar com 3h de antecedência');
   // IDOR
@@ -188,7 +190,9 @@ async function criarCliente(n, senha = 'cliente123') {
 
   // avaliações
   // atendimento no passado: só se conclui o que já começou
-  const paraAvaliar = await req('POST', '/agendamentos', { token: A, corpo: { clienteId: c1.id, servicoId: corte.id, profissionalId: gabriel.id, dataHora: '2020-03-04T14:00:00.000Z' } });
+  // O painel não cria agendamento em data passada; o atendimento antigo entra direto no banco.
+  const inserirAntigo = (clienteId, servicoId, profissionalId, dataHora) => ({ corpo: { id: Number(sql(`INSERT INTO agendamentos(\\"clienteId\\",\\"servicoId\\",\\"profissionalId\\",\\"dataHora\\",status,\\"atualizadoEm\\") VALUES (${clienteId},${servicoId},${profissionalId},'${dataHora}','CONFIRMADO',now()) RETURNING id`).split(String.fromCharCode(10))[0]) } });
+  const paraAvaliar = inserirAntigo(c1.id, corte.id, gabriel.id, '2020-03-04T14:00:00Z');
   (await req('POST', '/minhas-avaliacoes', { token: c1.token, corpo: { agendamentoId: paraAvaliar.corpo.id, nota: 5, comentario: 'ótimo' } })).status === 409 ? ok() : achado('ALTA', 'Regra de negócio', 'Avaliou atendimento que ainda não foi concluído');
   await req('PATCH', `/agendamentos/${paraAvaliar.corpo.id}`, { token: A, corpo: { status: 'CONCLUIDO' } });
   for (const nota of [0, 6, 2.5]) {
@@ -207,7 +211,7 @@ async function criarCliente(n, senha = 'cliente123') {
   const sv = await req('POST', '/servicos', { token: A, corpo: { nome: 'QA Servico Temp', descricao: 'x', valor: 10, duracaoMinutos: 30 } });
   const pf = await req('POST', '/profissionais', { token: A, corpo: { nome: 'QA Prof Temp', especialidade: 'x', descricao: 'x' } });
   const cl = await criarCliente(30);
-  const hist = await req('POST', '/agendamentos', { token: A, corpo: { clienteId: cl.id, servicoId: sv.corpo.id, profissionalId: pf.corpo.id, dataHora: '2020-02-03T13:00:00.000Z' } });
+  const hist = inserirAntigo(cl.id, sv.corpo.id, pf.corpo.id, '2020-02-03T13:00:00Z');
   await req('PATCH', `/agendamentos/${hist.corpo.id}`, { token: A, corpo: { status: 'CONCLUIDO' } });
   for (const [nome, rota] of [['serviço', `/servicos/${sv.corpo.id}`], ['profissional', `/profissionais/${pf.corpo.id}`], ['cliente', `/clientes/${cl.id}`]]) {
     const d = await req('DELETE', rota, { token: A });

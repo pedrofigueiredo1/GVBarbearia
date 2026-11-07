@@ -10,8 +10,11 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { CreateAgendamentoDto } from '../dto/create-agendamento.dto';
 import {
   INCLUDE_RELACOES,
+  ValidarAgendaAberta,
   ValidarHorarioDisponivel,
   ValidarReferenciasAgendamento,
+  garantirQueEstaNoExpediente,
+  garantirQueNaoEPassado,
   traduzirConflitoDeHorario,
 } from './compartilhado';
 
@@ -21,14 +24,24 @@ export class AdicionarAgendamento {
     private readonly prisma: PrismaService,
     private readonly validarReferencias: ValidarReferenciasAgendamento,
     private readonly validarHorarioDisponivel: ValidarHorarioDisponivel,
+    private readonly validarAgendaAberta: ValidarAgendaAberta,
   ) {}
 
   async executar(dto: CreateAgendamentoDto) {
+    garantirQueNaoEPassado(new Date(dto.dataHora));
     await this.validarReferencias.executar(
       dto.clienteId,
       dto.servicoId,
       dto.profissionalId,
     );
+    await this.validarAgendaAberta.executar(
+      dto.profissionalId,
+      new Date(dto.dataHora),
+    );
+    const servico = await this.prisma.servico.findUniqueOrThrow({
+      where: { id: dto.servicoId },
+    });
+    garantirQueEstaNoExpediente(new Date(dto.dataHora), servico.duracaoMinutos);
     await this.validarHorarioDisponivel.executar(
       dto.profissionalId,
       dto.dataHora,

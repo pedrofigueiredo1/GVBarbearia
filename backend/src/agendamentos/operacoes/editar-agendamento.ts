@@ -12,8 +12,11 @@ import { UpdateAgendamentoDto } from '../dto/update-agendamento.dto';
 import { BuscarAgendamento } from './buscar-agendamento';
 import {
   INCLUDE_RELACOES,
+  ValidarAgendaAberta,
   ValidarHorarioDisponivel,
   ValidarReferenciasAgendamento,
+  garantirQueEstaNoExpediente,
+  garantirQueNaoEPassado,
   garantirQueNaoEstaConcluido,
   traduzirConflitoDeHorario,
 } from './compartilhado';
@@ -25,6 +28,7 @@ export class EditarAgendamento {
     private readonly buscarAgendamento: BuscarAgendamento,
     private readonly validarReferencias: ValidarReferenciasAgendamento,
     private readonly validarHorarioDisponivel: ValidarHorarioDisponivel,
+    private readonly validarAgendaAberta: ValidarAgendaAberta,
   ) {}
 
   async executar(id: number, dto: UpdateAgendamentoDto) {
@@ -55,6 +59,47 @@ export class EditarAgendamento {
         dto.clienteId ?? atual.cliente.id,
         dto.servicoId ?? atual.servico.id,
         dto.profissionalId ?? atual.profissional.id,
+      );
+    }
+
+    // Mudar o dia/horário ou o barbeiro é um agendamento novo na prática: não
+    // pode cair numa data que já passou nem numa agenda bloqueada. Editar só o
+    // status (ou o serviço) de um atendimento antigo continua permitido. O painel
+    // reenvia o horário mesmo sem mudança, por isso só vale o que foi alterado.
+    const novaDataHora = dto.dataHora ? new Date(dto.dataHora) : null;
+    const mudouHorario =
+      novaDataHora !== null &&
+      novaDataHora.getTime() !== atual.dataHora.getTime();
+    const mudouProfissional =
+      dto.profissionalId !== undefined &&
+      dto.profissionalId !== atual.profissional.id;
+    if (mudouHorario) garantirQueNaoEPassado(novaDataHora);
+    if (
+      (mudouHorario || mudouProfissional) &&
+      (dto.status ?? atual.status) !== StatusAgendamento.CANCELADO
+    ) {
+      await this.validarAgendaAberta.executar(
+        dto.profissionalId ?? atual.profissional.id,
+        novaDataHora ?? atual.dataHora,
+      );
+    }
+
+    // O novo horário também precisa estar no expediente da barbearia, e trocar o
+    // serviço pode mudar a duração (que precisa caber até o fim do período).
+    const mudouServico =
+      dto.servicoId !== undefined && dto.servicoId !== atual.servico.id;
+    if (
+      (mudouHorario || mudouServico) &&
+      (dto.status ?? atual.status) !== StatusAgendamento.CANCELADO
+    ) {
+      const servico = mudouServico
+        ? await this.prisma.servico.findUniqueOrThrow({
+            where: { id: dto.servicoId },
+          })
+        : atual.servico;
+      garantirQueEstaNoExpediente(
+        novaDataHora ?? atual.dataHora,
+        servico.duracaoMinutos,
       );
     }
 

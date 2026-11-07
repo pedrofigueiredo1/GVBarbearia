@@ -11,9 +11,11 @@ import { ListarAgendamentosPaginado } from './operacoes/listar-agendamentos-pagi
 import { BuscarAgendamento } from './operacoes/buscar-agendamento';
 import { EditarAgendamento } from './operacoes/editar-agendamento';
 import { CancelarAgendamento } from './operacoes/cancelar-agendamento';
+import { ConsultarDatasBloqueadas } from './operacoes/consultar-datas-bloqueadas';
 import {
   ValidarReferenciasAgendamento,
   ValidarHorarioDisponivel,
+  ValidarAgendaAberta,
 } from './operacoes/compartilhado';
 
 @Module({
@@ -24,6 +26,7 @@ import {
     ListarAgendamentosCliente,
     CancelarAgendamentoCliente,
     ConsultarHorariosDisponiveis,
+    ConsultarDatasBloqueadas,
     ListarAgendamentos,
     ListarAgendamentosPaginado,
     BuscarAgendamento,
@@ -31,6 +34,7 @@ import {
     CancelarAgendamento,
     ValidarReferenciasAgendamento,
     ValidarHorarioDisponivel,
+    ValidarAgendaAberta,
   ],
 })
 export class AgendamentosModule {}

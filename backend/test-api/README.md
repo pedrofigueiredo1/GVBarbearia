@@ -22,7 +22,7 @@ limpar esses dados, então só servem no ambiente de desenvolvimento.
 ## Rodar tudo
 
 ```bash
-node test-api/executar-todos.js            # horários, concluído, correções do QA, dashboard
+node test-api/executar-todos.js            # horários, concluído, correções do QA, dashboard, ranking, fotos, bloqueios de agenda
 node test-api/executar-todos.js --com-demo # inclui as listagens paginadas (precisa dos dados de demonstração)
 ```
 
@@ -45,3 +45,15 @@ node test-api/executar-todos.js --com-demo # inclui as listagens paginadas (prec
 
 - `qa-geral.js` é a varredura ampla de QA (segurança, validações, concorrência): em vez de
   passar/falhar, lista os achados por gravidade.
+
+- `ranking-servicos.js` confere o ranking de serviços mais agendados (janela de 7 dias, cancelados fora,
+  empate, futuros). Cria agendamentos temporários e apaga tudo no fim.
+- `fotos.js` confere o envio de foto de profissional/produto: tudo sai 600x800 JPEG, tipos inválidos e
+  arquivo grande são recusados, exige login e a foto some junto com o cadastro. Cria um administrador
+  temporário `qa-fotos@teste.com` (sua senha não é usada) e apaga tudo no fim.
+
+## Fotos dos barbeiros
+
+`npm run importar:fotos` (na pasta backend) carrega no banco as fotos dos barbeiros que estão em
+`mobile/assets/images/prof-*.jpg`, só para quem ainda não tem foto. Depois disso as fotos são
+trocadas pelo painel.

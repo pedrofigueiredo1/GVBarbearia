@@ -10,7 +10,9 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ClienteJwtAuthGuard } from '../auth-cliente/cliente-jwt-auth.guard';
+import { ConsultarDatasBloqueadasDto } from './dto/consultar-datas-bloqueadas.dto';
 import { ConsultarHorariosDisponiveisDto } from './dto/consultar-horarios-disponiveis.dto';
+import { ConsultarDatasBloqueadas } from './operacoes/consultar-datas-bloqueadas';
 import { CreateAgendamentoClienteDto } from './dto/create-agendamento-cliente.dto';
 import { AdicionarAgendamentoCliente } from './operacoes/adicionar-agendamento-cliente';
 import { CancelarAgendamentoCliente } from './operacoes/cancelar-agendamento-cliente';
@@ -29,6 +31,7 @@ export class AgendamentosClienteController {
     private readonly listarAgendamentosCliente: ListarAgendamentosCliente,
     private readonly cancelarAgendamentoCliente: CancelarAgendamentoCliente,
     private readonly consultarHorariosDisponiveis: ConsultarHorariosDisponiveis,
+    private readonly consultarDatasBloqueadas: ConsultarDatasBloqueadas,
   ) {}
 
   // ===== CADASTRAR AGENDAMENTO PELO CLIENTE =====
@@ -54,6 +57,12 @@ export class AgendamentosClienteController {
     @Query() query: ConsultarHorariosDisponiveisDto,
   ) {
     return this.consultarHorariosDisponiveis.executar(req.user.id, query);
+  }
+
+  // ===== CONSULTAR DATAS BLOQUEADAS =====
+  @Get('datas-bloqueadas')
+  datasBloqueadas(@Query() query: ConsultarDatasBloqueadasDto) {
+    return this.consultarDatasBloqueadas.executar(query);
   }
 
   // ===== CANCELAR AGENDAMENTO PELO CLIENTE =====

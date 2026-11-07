@@ -1,12 +1,22 @@
 // Itens usados por mais de uma operação de Agendamento — mantidos aqui
 // para não duplicar a mesma regra em vários arquivos.
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
 import { Prisma, StatusAgendamento } from '@prisma/client';
+import {
+  bloqueioDoDia,
+  mensagemDoBloqueio,
+} from '../../bloqueios-agenda/consultar-bloqueios';
 import { PrismaService } from '../../prisma/prisma.service';
+import {
+  dataEHoraLocais,
+  estaNaGrade,
+  hojeNaBarbearia,
+} from '../horario-atendimento';
 import { FiltrosAgendamentoDto } from '../dto/filtros-agendamento.dto';
 
 // US Consulta de Agendamento exige exibir cliente, serviço, profissional,
@@ -74,6 +84,49 @@ export class ValidarHorarioDisponivel {
       throw new ConflictException(
         'Este profissional já tem um agendamento nesse mesmo horário.',
       );
+    }
+  }
+}
+
+// Regra de negócio: não se agenda em dia que já passou. O dia de hoje vale (o
+// painel registra atendimentos de balcão, que acontecem nas próximas horas).
+// Compara o dia no horário de Brasília, o mesmo da barbearia.
+export function garantirQueNaoEPassado(dataHora: Date) {
+  if (dataEHoraLocais(dataHora).data < hojeNaBarbearia()) {
+    throw new BadRequestException(
+      'Não é possível agendar em uma data que já passou.',
+    );
+  }
+}
+
+// Regra de negócio: só se agenda dentro do expediente da barbearia, num dos
+// horários da grade (de 30 em 30 minutos), com o serviço cabendo até o fim do
+// período em que começa. Vale para o painel e para o app.
+export function garantirQueEstaNoExpediente(
+  dataHora: Date,
+  duracaoMinutos: number,
+) {
+  if (!estaNaGrade(dataHora, duracaoMinutos)) {
+    throw new BadRequestException(
+      'Esse horário está fora do horário de atendimento da barbearia.',
+    );
+  }
+}
+
+// Regra de negócio: a agenda bloqueada pelo administrador (feriado, ausência
+// do barbeiro) não aceita novos agendamentos, nem pelo painel.
+@Injectable()
+export class ValidarAgendaAberta {
+  constructor(private readonly prisma: PrismaService) {}
+
+  async executar(profissionalId: number, dataHora: Date) {
+    const bloqueio = await bloqueioDoDia(
+      this.prisma,
+      profissionalId,
+      dataEHoraLocais(dataHora).data,
+    );
+    if (bloqueio) {
+      throw new ConflictException(mensagemDoBloqueio(bloqueio.motivo));
     }
   }
 }

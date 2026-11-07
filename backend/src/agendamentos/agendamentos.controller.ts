@@ -10,11 +10,13 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { ConsultarHorariosPainelDto } from './dto/consultar-horarios-painel.dto';
 import { CreateAgendamentoDto } from './dto/create-agendamento.dto';
 import { FiltrosAgendamentoDto } from './dto/filtros-agendamento.dto';
 import { ListarAgendamentosPaginadoDto } from './dto/listar-agendamentos-paginado.dto';
 import { UpdateAgendamentoDto } from './dto/update-agendamento.dto';
 import { AdicionarAgendamento } from './operacoes/adicionar-agendamento';
+import { ConsultarHorariosDisponiveis } from './operacoes/consultar-horarios-disponiveis';
 import { ListarAgendamentos } from './operacoes/listar-agendamentos';
 import { ListarAgendamentosPaginado } from './operacoes/listar-agendamentos-paginado';
 import { BuscarAgendamento } from './operacoes/buscar-agendamento';
@@ -32,6 +34,7 @@ export class AgendamentosController {
     private readonly buscarAgendamento: BuscarAgendamento,
     private readonly editarAgendamento: EditarAgendamento,
     private readonly cancelarAgendamento: CancelarAgendamento,
+    private readonly consultarHorariosDisponiveis: ConsultarHorariosDisponiveis,
   ) {}
 
   // ===== CADASTRAR AGENDAMENTO =====
@@ -51,6 +54,18 @@ export class AgendamentosController {
   @Get('paginado')
   findPage(@Query() dto: ListarAgendamentosPaginadoDto) {
     return this.listarAgendamentosPaginado.executar(dto);
+  }
+
+  // ===== CONSULTAR HORÁRIOS DISPONÍVEIS (PAINEL) =====
+  // Os horários em que a barbearia está aberta e o barbeiro está livre, para o
+  // formulário de agendamento do painel mostrar só esses. Antes de ':id'.
+  @Get('horarios-disponiveis')
+  horariosDisponiveis(@Query() query: ConsultarHorariosPainelDto) {
+    return this.consultarHorariosDisponiveis.executar(
+      query.clienteId ?? 0,
+      query,
+      { ignorarAgendamentoId: query.agendamentoId, painel: true },
+    );
   }
 
   // ===== BUSCAR AGENDAMENTO POR ID =====

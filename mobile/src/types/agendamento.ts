@@ -33,4 +33,11 @@ export interface HorarioDisponivel {
 export interface HorariosDisponiveis {
   data: string;
   horarios: HorarioDisponivel[];
+  // Dia fechado pela barbearia (feriado, folga do profissional): não há horários.
+  bloqueado: boolean;
+}
+
+// Dias (AAAA-MM-DD) em que o profissional não atende.
+export interface DatasBloqueadas {
+  datas: string[];
 }

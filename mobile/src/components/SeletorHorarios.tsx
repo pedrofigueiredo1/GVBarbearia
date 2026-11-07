@@ -9,6 +9,8 @@ interface Props {
   onSelecionar: (dataHora: string) => void;
   carregando?: boolean;
   erro?: string | null;
+  // Dia sem atendimento (feriado, folga do profissional).
+  bloqueado?: boolean;
 }
 
 // Grade com os horários livres do dia: um botão por horário, o escolhido em
@@ -19,6 +21,7 @@ export function SeletorHorarios({
   onSelecionar,
   carregando = false,
   erro = null,
+  bloqueado = false,
 }: Props) {
   if (carregando) {
     return (
@@ -39,7 +42,11 @@ export function SeletorHorarios({
   if (horarios.length === 0) {
     return (
       <View style={styles.aviso}>
-        <Text style={styles.vazio}>Não há horários livres neste dia. Escolha outra data.</Text>
+        <Text style={styles.vazio}>
+          {bloqueado
+            ? 'O profissional não atende nesta data. Escolha outra data ou outro profissional.'
+            : 'Não há horários livres neste dia. Escolha outra data.'}
+        </Text>
       </View>
     );
   }

@@ -16,13 +16,18 @@ datasource db {
 // Entidade referente à User Story "Cadastro de Profissional" (item 2.13 da documentação).
 // Campos obrigatórios definidos nos Critérios da US: nome, especialidade e descrição.
 model Profissional {
-  id            Int           @id @default(autoincrement())
-  nome          String
-  especialidade String
-  descricao     String
-  criadoEm      DateTime      @default(now())
-  atualizadoEm  DateTime      @updatedAt
-  agendamentos  Agendamento[]
+  id               Int           @id @default(autoincrement())
+  nome             String
+  especialidade    String
+  descricao        String
+  // Data da última troca da foto (nula = sem foto). Vai na URL da imagem para o
+  // app e o painel baixarem de novo só quando a foto muda.
+  fotoAtualizadaEm DateTime?
+  foto             Foto?
+  criadoEm         DateTime      @default(now())
+  atualizadoEm     DateTime      @updatedAt
+  agendamentos     Agendamento[]
+  bloqueios        BloqueioAgenda[]
 
   @@map("profissionais")
 }
@@ -177,4 +182,39 @@ model Avaliacao {
   atualizadoEm  DateTime    @updatedAt
 
   @@map("avaliacoes")
+}
+
+// Foto de um profissional ou de um produto, já recortada e reduzida para o
+// formato padrão (ver fotos/operacoes/processar-imagem.ts). Fica no banco, e
+// não em arquivo, porque o disco do servidor de hospedagem não é permanente.
+// Tem exatamente um dono: ou profissionalId ou produtoId.
+model Foto {
+  id             Int           @id @default(autoincrement())
+  conteudo       Bytes
+  tipoMime       String
+  atualizadaEm   DateTime      @default(now())
+  profissionalId Int?          @unique
+  profissional   Profissional? @relation(fields: [profissionalId], references: [id], onDelete: Cascade)
+  produtoId      Int?          @unique
+  produto        Produto?      @relation(fields: [produtoId], references: [id], onDelete: Cascade)
+
+  @@map("fotos")
+}
+
+// Período em que a agenda não aceita novos agendamentos: feriado (vale para
+// todos os barbeiros, `profissionalId` nulo) ou ausência de um barbeiro. As
+// datas ficam como texto AAAA-MM-DD, o dia no horário de Brasília, o mesmo
+// formato que a API usa; o fim é inclusivo (um dia só: início igual ao fim).
+// Não cancela agendamentos que já existem nesses dias, só impede novos.
+model BloqueioAgenda {
+  id             Int           @id @default(autoincrement())
+  profissionalId Int?
+  profissional   Profissional? @relation(fields: [profissionalId], references: [id], onDelete: Cascade)
+  dataInicio     String        @db.VarChar(10)
+  dataFim        String        @db.VarChar(10)
+  motivo         String
+  criadoEm       DateTime      @default(now())
+
+  @@index([dataInicio, dataFim])
+  @@map("bloqueios_agenda")
 }

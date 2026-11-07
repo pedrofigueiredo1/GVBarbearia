@@ -80,8 +80,9 @@ async function criarCliente(n) {
   console.log('3) concluir atendimento futuro');
   const fut = await req('PATCH', `/agendamentos/${base.corpo.id}`, { token: A, corpo: { status: 'CONCLUIDO' } });
   checar('concluir agendamento futuro -> 409', fut.status === 409 && /já começou/.test(fut.corpo.message), JSON.stringify(fut.corpo));
-  const passado = await req('POST', '/agendamentos', { token: A, corpo: { clienteId: cs[0].id, servicoId: corte.id, profissionalId: gabriel.id, dataHora: '2020-03-02T13:00:00.000Z' } });
-  checar('concluir agendamento passado -> 200', (await req('PATCH', `/agendamentos/${passado.corpo.id}`, { token: A, corpo: { status: 'CONCLUIDO' } })).status === 200);
+  // O painel não cria agendamento em data passada; o atendimento antigo entra direto no banco.
+  const passadoId = Number(sql(`INSERT INTO agendamentos(\\"clienteId\\",\\"servicoId\\",\\"profissionalId\\",\\"dataHora\\",status,\\"atualizadoEm\\") VALUES (${cs[0].id},${corte.id},${gabriel.id},'2020-03-02T13:00:00Z','CONFIRMADO',now()) RETURNING id`).split('\n')[0]);
+  checar('concluir agendamento passado -> 200', (await req('PATCH', `/agendamentos/${passadoId}`, { token: A, corpo: { status: 'CONCLUIDO' } })).status === 200);
 
   console.log('4) validações');
   const post = (rota, corpo) => req('POST', rota, { token: A, corpo });

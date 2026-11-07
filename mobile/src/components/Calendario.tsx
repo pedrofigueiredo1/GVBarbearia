@@ -10,6 +10,8 @@ interface Props {
   onSelecionar: (data: string) => void;
   // Até quantos dias à frente dá para agendar.
   diasAdiante?: number;
+  // Dias em que o profissional escolhido não atende (AAAA-MM-DD): ficam apagados e riscados.
+  datasBloqueadas?: string[];
 }
 
 const MESES = [
@@ -36,8 +38,14 @@ const dois = (n: number) => String(n).padStart(2, '0');
 const chave = (ano: number, mes: number, dia: number) => `${ano}-${dois(mes + 1)}-${dois(dia)}`;
 
 // Calendário mensal no visual do app: toque num dia para escolher; dias que já
-// passaram, os depois do limite e os de folga ficam apagados.
-export function Calendario({ selecionada, onSelecionar, diasAdiante = 60 }: Props) {
+// passaram, os depois do limite, os de folga e os bloqueados pela barbearia
+// (feriado, ausência do profissional) ficam apagados.
+export function Calendario({
+  selecionada,
+  onSelecionar,
+  diasAdiante = 60,
+  datasBloqueadas = [],
+}: Props) {
   const agora = hojeNaBarbearia();
   const hoje = chave(agora.getFullYear(), agora.getMonth(), agora.getDate());
   const limiteData = new Date(agora.getFullYear(), agora.getMonth(), agora.getDate() + diasAdiante);
@@ -109,15 +117,16 @@ export function Calendario({ selecionada, onSelecionar, diasAdiante = 60 }: Prop
               if (dia === null) return <View key={`vazio-${diaDaSemana}`} style={styles.celula} />;
 
               const data = chave(visivel.ano, visivel.mes, dia);
+              const bloqueado = datasBloqueadas.includes(data);
               const desabilitado =
-                data < hoje || data > limite || DIAS_FECHADOS.includes(diaDaSemana);
+                data < hoje || data > limite || DIAS_FECHADOS.includes(diaDaSemana) || bloqueado;
               const escolhido = data === selecionada;
 
               return (
                 <View key={data} style={styles.celula}>
                   <Pressable
                     accessibilityRole="button"
-                    accessibilityLabel={`${dia} de ${MESES[visivel.mes]}`}
+                    accessibilityLabel={`${dia} de ${MESES[visivel.mes]}${bloqueado ? ', sem atendimento' : ''}`}
                     accessibilityState={{ selected: escolhido, disabled: desabilitado }}
                     disabled={desabilitado}
                     onPress={() => onSelecionar(data)}
@@ -131,6 +140,7 @@ export function Calendario({ selecionada, onSelecionar, diasAdiante = 60 }: Prop
                       style={[
                         styles.numero,
                         desabilitado && styles.numeroDesabilitado,
+                        bloqueado && styles.numeroBloqueado,
                         escolhido && styles.numeroEscolhido,
                       ]}
                     >
@@ -189,5 +199,6 @@ const styles = StyleSheet.create({
   diaEscolhido: { backgroundColor: cores.cobre, borderColor: cores.cobre },
   numero: { color: cores.texto, fontSize: 16, fontWeight: '600' },
   numeroDesabilitado: { color: cores.borda, fontWeight: '400' },
+  numeroBloqueado: { textDecorationLine: 'line-through' },
   numeroEscolhido: { color: cores.sobreCobre, fontWeight: '800' },
 });

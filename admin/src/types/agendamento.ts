@@ -37,3 +37,17 @@ export interface UpdateAgendamentoInput {
   dataHora?: string;
   status?: StatusAgendamento;
 }
+
+// Um horário livre: `hora` ('09:30') é para mostrar. As horas são as de
+// Brasília, as mesmas da barbearia.
+export interface HorarioDisponivel {
+  hora: string;
+  dataHora: string;
+}
+
+export interface HorariosDisponiveis {
+  data: string;
+  horarios: HorarioDisponivel[];
+  // Dia fechado pelo administrador (feriado, ausência do barbeiro).
+  bloqueado: boolean;
+}

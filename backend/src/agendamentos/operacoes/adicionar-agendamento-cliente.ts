@@ -19,6 +19,10 @@ import {
   Injectable,
 } from '@nestjs/common';
 import { StatusAgendamento } from '@prisma/client';
+import {
+  bloqueioDoDia,
+  mensagemDoBloqueio,
+} from '../../bloqueios-agenda/consultar-bloqueios';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateAgendamentoClienteDto } from '../dto/create-agendamento-cliente.dto';
 import { dataEHoraLocais, estaNaGrade } from '../horario-atendimento';
@@ -62,6 +66,11 @@ export class AdicionarAgendamentoCliente {
     }
     const { data } = dataEHoraLocais(dataHora);
     garantirDentroDoHorizonte(data);
+
+    const bloqueio = await bloqueioDoDia(this.prisma, dto.profissionalId, data);
+    if (bloqueio) {
+      throw new ConflictException(mensagemDoBloqueio(bloqueio.motivo));
+    }
 
     try {
       return await this.prisma.$transaction(async (tx) => {

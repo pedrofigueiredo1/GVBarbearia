@@ -123,8 +123,7 @@ const iso = (data, hora) => new Date(`${data}T${hora}:00-03:00`).toISOString();
   r = await horarios(t1, corte, gabriel, seg);
   checar('10:00 volta a ficar livre', r.lista.includes('10:00'), r.lista.join(','));
 
-  console.log('7) o painel (admin) continua sem a grade');
-  // (não testado aqui: o painel não foi alterado)
+  // O painel também só agenda dentro do expediente: testado em bloqueios-agenda.js (seção 7).
 
   sql(`DELETE FROM agendamentos WHERE \\"clienteId\\" IN (SELECT id FROM clientes WHERE email LIKE 'teste-hor%@teste.com')`);
   sql(`DELETE FROM clientes WHERE email LIKE 'teste-hor%@teste.com'`);

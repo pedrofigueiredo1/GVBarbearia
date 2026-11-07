@@ -14,6 +14,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { Prisma, StatusAgendamento } from '@prisma/client';
+import { bloqueioDoDia } from '../../bloqueios-agenda/consultar-bloqueios';
 import { PrismaService } from '../../prisma/prisma.service';
 import { ConsultarHorariosDisponiveisDto } from '../dto/consultar-horarios-disponiveis.dto';
 import {
@@ -28,10 +29,11 @@ const MS_POR_MINUTO = 60_000;
 
 // Aceita o PrismaService e também o cliente de uma transação, para a mesma
 // conta servir na consulta e dentro da trava do agendamento.
-type Banco = Pick<Prisma.TransactionClient, 'agendamento'>;
+type Banco = Pick<Prisma.TransactionClient, 'agendamento' | 'bloqueioAgenda'>;
 
 // Horários livres de um dia para um serviço e um profissional (já com a grade da
-// barbearia, a antecedência e os atendimentos existentes descontados).
+// barbearia, a antecedência, os bloqueios de agenda e os atendimentos
+// existentes descontados).
 export async function calcularHorariosLivres(
   banco: Banco,
   params: {
@@ -39,13 +41,20 @@ export async function calcularHorariosLivres(
     profissionalId: number;
     duracaoMinutos: number;
     data: string;
+    // Agendamento que está sendo remarcado: o horário dele não conta como ocupado.
+    ignorarAgendamentoId?: number;
   },
 ) {
+  if (await bloqueioDoDia(banco, params.profissionalId, params.data)) return [];
+
   const { inicio, fim } = limitesDoDia(params.data);
   const ocupados = await banco.agendamento.findMany({
     where: {
       dataHora: { gte: inicio, lt: fim },
       status: { not: StatusAgendamento.CANCELADO },
+      ...(params.ignorarAgendamentoId !== undefined && {
+        id: { not: params.ignorarAgendamentoId },
+      }),
       OR: [
         { profissionalId: params.profissionalId },
         { clienteId: params.clienteId },
@@ -85,7 +94,13 @@ export function garantirDentroDoHorizonte(data: string) {
 export class ConsultarHorariosDisponiveis {
   constructor(private readonly prisma: PrismaService) {}
 
-  async executar(clienteId: number, dto: ConsultarHorariosDisponiveisDto) {
+  // `clienteId` 0 não corresponde a nenhum cliente (o painel consulta sem
+  // escolher cliente ainda). O painel não tem o limite de antecedência do app.
+  async executar(
+    clienteId: number,
+    dto: ConsultarHorariosDisponiveisDto,
+    opcoes: { ignorarAgendamentoId?: number; painel?: boolean } = {},
+  ) {
     const [ano, mes, dia] = dto.data.split('-').map(Number);
     const calendario = new Date(Date.UTC(ano, mes - 1, dia));
     if (
@@ -94,7 +109,7 @@ export class ConsultarHorariosDisponiveis {
     ) {
       throw new BadRequestException('Informe uma data válida.');
     }
-    garantirDentroDoHorizonte(dto.data);
+    if (!opcoes.painel) garantirDentroDoHorizonte(dto.data);
 
     const [servico, profissional] = await Promise.all([
       this.prisma.servico.findUnique({ where: { id: dto.servicoId } }),
@@ -113,13 +128,19 @@ export class ConsultarHorariosDisponiveis {
       );
     }
 
+    // Dia bloqueado pelo administrador: o app mostra o aviso em vez de "sem horários".
+    if (await bloqueioDoDia(this.prisma, dto.profissionalId, dto.data)) {
+      return { data: dto.data, horarios: [], bloqueado: true };
+    }
+
     const horarios = await calcularHorariosLivres(this.prisma, {
       clienteId,
       profissionalId: dto.profissionalId,
       duracaoMinutos: servico.duracaoMinutos,
       data: dto.data,
+      ignorarAgendamentoId: opcoes.ignorarAgendamentoId,
     });
 
-    return { data: dto.data, horarios };
+    return { data: dto.data, horarios, bloqueado: false };
   }
 }

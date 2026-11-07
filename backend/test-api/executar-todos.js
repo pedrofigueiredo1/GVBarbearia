@@ -17,6 +17,9 @@ const scripts = [
   ['concluido.js', 'Atendimento concluído não pode ser cancelado'],
   ['correcoes-do-qa.js', 'Correções do QA (corrida, reativação, validações...)'],
   ['dashboard.js', 'Dashboard'],
+  ['ranking-servicos.js', 'Ranking de serviços mais agendados'],
+  ['fotos.js', 'Fotos de profissionais e produtos (formato padrão 600x800)'],
+  ['bloqueios-agenda.js', 'Datas passadas e bloqueio de agenda (feriados e ausências)'],
   ...(comDemo ? [['paginacao.js', 'Listagens paginadas (precisa dos dados de demonstração)']] : []),
 ];
 

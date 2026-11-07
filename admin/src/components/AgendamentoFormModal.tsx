@@ -1,15 +1,20 @@
 'use client';
 
 import { FormEvent, useEffect, useState } from 'react';
+import { encontrarBloqueio, listarBloqueios } from '@/lib/bloqueios';
+import { consultarHorariosDisponiveis } from '@/lib/agendamentos';
 import { listarClientes } from '@/lib/clientes';
+import { hojeLocal } from '@/lib/datas';
 import { listarServicos } from '@/lib/servicos';
 import { listarProfissionais } from '@/lib/profissionais';
+import type { BloqueioAgenda } from '@/types/bloqueio';
 import type { Cliente } from '@/types/cliente';
 import type { Servico } from '@/types/servico';
 import type { Profissional } from '@/types/profissional';
 import type {
   Agendamento,
   CreateAgendamentoInput,
+  HorarioDisponivel,
   StatusAgendamento,
   UpdateAgendamentoInput,
 } from '@/types/agendamento';
@@ -49,6 +54,11 @@ export function AgendamentoFormModal({ agendamento, inicial, onClose, onSalvar }
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [servicos, setServicos] = useState<Servico[]>([]);
   const [profissionais, setProfissionais] = useState<Profissional[]>([]);
+  const [bloqueios, setBloqueios] = useState<BloqueioAgenda[]>([]);
+  // Horários livres do dia, dentro do expediente da barbearia (vêm da API).
+  const [horarios, setHorarios] = useState<HorarioDisponivel[] | null>(null);
+  const [diaFechado, setDiaFechado] = useState(false);
+  const [carregandoHorarios, setCarregandoHorarios] = useState(false);
   const [carregandoOpcoes, setCarregandoOpcoes] = useState(true);
 
   const camposIniciais = agendamento
@@ -69,18 +79,98 @@ export function AgendamentoFormModal({ agendamento, inicial, onClose, onSalvar }
   const [salvando, setSalvando] = useState(false);
 
   useEffect(() => {
-    Promise.all([listarClientes(), listarServicos(), listarProfissionais()])
-      .then(([c, s, p]) => {
+    Promise.all([listarClientes(), listarServicos(), listarProfissionais(), listarBloqueios()])
+      .then(([c, s, p, b]) => {
         setClientes(c);
         setServicos(s);
         setProfissionais(p);
+        setBloqueios(b);
       })
       .finally(() => setCarregandoOpcoes(false));
   }, []);
 
+  // Só os horários em que a barbearia está aberta e o barbeiro está livre são
+  // oferecidos. Depende do serviço (duração), do barbeiro, do dia e do cliente.
+  const { servicoId, profissionalId, data, clienteId } = form;
+  useEffect(() => {
+    setHorarios(null);
+    setDiaFechado(false);
+    if (servicoId === '' || profissionalId === '' || data === '') return;
+
+    let cancelado = false;
+    setCarregandoHorarios(true);
+    consultarHorariosDisponiveis({
+      servicoId: Number(servicoId),
+      profissionalId: Number(profissionalId),
+      data,
+      clienteId: clienteId === '' ? undefined : Number(clienteId),
+      agendamentoId: agendamento?.id,
+    })
+      .then((resposta) => {
+        if (cancelado) return;
+        setHorarios(resposta.horarios);
+        setDiaFechado(resposta.bloqueado);
+      })
+      .catch(() => {
+        if (!cancelado) setHorarios([]);
+      })
+      .finally(() => {
+        if (!cancelado) setCarregandoHorarios(false);
+      });
+    return () => {
+      cancelado = true;
+    };
+  }, [servicoId, profissionalId, data, clienteId, agendamento?.id]);
+
+  // Ao editar sem mudar serviço, barbeiro nem dia, o horário atual continua na lista
+  // (mesmo que já tenha passado), para dar para mudar só o status.
+  const mantemHorarioAtual =
+    !!agendamento &&
+    Number(servicoId) === agendamento.servicoId &&
+    Number(profissionalId) === agendamento.profissionalId &&
+    data === camposIniciais.data;
+  const opcoesDeHora = (horarios ?? []).map((h) => h.hora);
+  if (mantemHorarioAtual && camposIniciais.hora && !opcoesDeHora.includes(camposIniciais.hora)) {
+    opcoesDeHora.unshift(camposIniciais.hora);
+    opcoesDeHora.sort();
+  }
+
+  // Se o horário escolhido deixou de existir na lista (trocou o dia, o barbeiro ou o
+  // serviço), a escolha é limpa para não enviar um horário fechado.
+  useEffect(() => {
+    if (horarios !== null && form.hora !== '' && !opcoesDeHora.includes(form.hora)) {
+      setForm((atual) => ({ ...atual, hora: '' }));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [horarios]);
+
+  // Datas que já passaram não aceitam agendamento novo. Ao editar, só vale se o
+  // dia foi trocado: um atendimento antigo continua podendo mudar de status.
+  const mudouDia = !agendamento || form.data !== camposIniciais.data;
+  const diaPassado = mudouDia && form.data !== '' && form.data < hojeLocal();
+
+  // Agenda bloqueada (feriado ou ausência do barbeiro) no dia e barbeiro escolhidos.
+  // Quem só cancela um agendamento que já existia no período pode seguir.
+  const mudouAgenda =
+    !agendamento ||
+    mudouDia ||
+    Number(form.profissionalId) !== agendamento.profissionalId;
+  const bloqueio =
+    mudouAgenda && form.status !== 'CANCELADO' && form.data && form.profissionalId !== ''
+      ? encontrarBloqueio(bloqueios, Number(form.profissionalId), form.data)
+      : undefined;
+
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
     setErro(null);
+    if (diaPassado) {
+      setErro('Não é possível agendar em uma data que já passou.');
+      return;
+    }
+    if (bloqueio) {
+      setErro(`A agenda está bloqueada nessa data (${bloqueio.motivo}).`);
+      return;
+    }
     setSalvando(true);
     try {
       const dataHora = paraIso(form.data, form.hora);
@@ -194,6 +284,7 @@ export function AgendamentoFormModal({ agendamento, inicial, onClose, onSalvar }
                   id="data"
                   type="date"
                   required
+                  min={agendamento ? undefined : hojeLocal()}
                   className="w-full rounded-lg border border-borda bg-superficie-alta px-3 py-2 text-sm"
                   value={form.data}
                   onChange={(e) => setForm({ ...form, data: e.target.value })}
@@ -203,16 +294,46 @@ export function AgendamentoFormModal({ agendamento, inicial, onClose, onSalvar }
                 <label className="block text-sm font-medium mb-1" htmlFor="hora">
                   Horário
                 </label>
-                <input
+                <select
                   id="hora"
-                  type="time"
                   required
-                  className="w-full rounded-lg border border-borda bg-superficie-alta px-3 py-2 text-sm"
+                  disabled={horarios === null || carregandoHorarios || opcoesDeHora.length === 0}
+                  className="w-full rounded-lg border border-borda bg-superficie-alta text-foreground px-3 py-2 text-sm disabled:opacity-60"
                   value={form.hora}
                   onChange={(e) => setForm({ ...form, hora: e.target.value })}
-                />
+                >
+                  <option value="" disabled>
+                    {carregandoHorarios ? 'Carregando...' : 'Selecione...'}
+                  </option>
+                  {opcoesDeHora.map((hora) => (
+                    <option key={hora} value={hora}>
+                      {hora}
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
+
+            {horarios === null && !carregandoHorarios && (
+              <p className="-mt-2 text-xs text-white/50">
+                Escolha o serviço, o barbeiro e a data para ver os horários livres.
+              </p>
+            )}
+            {horarios !== null && opcoesDeHora.length === 0 && !diaFechado && !diaPassado && (
+              <p className="-mt-2 text-xs text-amber-300">
+                Não há horários livres nesse dia (a barbearia pode estar fechada). Escolha outra data.
+              </p>
+            )}
+            {diaPassado && (
+              <p className="text-sm text-red-500">Essa data já passou. Escolha hoje ou um dia futuro.</p>
+            )}
+            {bloqueio && (
+              <p className="rounded-lg border border-red-400/40 bg-red-950/40 p-3 text-sm text-red-200">
+                A agenda está bloqueada nessa data
+                {bloqueio.profissional ? ` para ${bloqueio.profissional.nome}` : ' para todos os barbeiros'}:{' '}
+                {bloqueio.motivo}. Escolha outro dia ou outro barbeiro.
+              </p>
+            )}
 
             {agendamento && (
               <div>
@@ -248,7 +369,7 @@ export function AgendamentoFormModal({ agendamento, inicial, onClose, onSalvar }
               </button>
               <button
                 type="submit"
-                disabled={salvando}
+                disabled={salvando || diaPassado || !!bloqueio}
                 className="rounded-lg bg-copper text-copper-ink hover:brightness-110 px-4 py-2 text-sm font-medium disabled:opacity-50"
               >
                 {salvando ? 'Salvando...' : 'Salvar'}

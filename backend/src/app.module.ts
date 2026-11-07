@@ -18,6 +18,7 @@ import { RelatoriosModule } from './relatorios/relatorios.module';
 import { AuthClienteModule } from './auth-cliente/auth-cliente.module';
 import { PublicoModule } from './publico/publico.module';
 import { DashboardModule } from './dashboard/dashboard.module';
+import { BloqueiosAgendaModule } from './bloqueios-agenda/bloqueios-agenda.module';
 
 @Module({
   imports: [
@@ -46,6 +47,7 @@ import { DashboardModule } from './dashboard/dashboard.module';
     AuthClienteModule,
     PublicoModule,
     DashboardModule,
+    BloqueiosAgendaModule,
   ],
   controllers: [AppController],
   providers: [AppService, { provide: APP_GUARD, useClass: ThrottlerGuard }],

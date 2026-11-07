@@ -9,7 +9,11 @@ import { SeletorHorarios } from '@/components/SeletorHorarios';
 import { SeletorOpcoes } from '@/components/SeletorOpcoes';
 import { useCarregar } from '@/hooks/useCarregar';
 import { ApiError } from '@/lib/api';
-import { adicionarAgendamento, consultarHorariosDisponiveis } from '@/lib/agendamentos';
+import {
+  adicionarAgendamento,
+  consultarDatasBloqueadas,
+  consultarHorariosDisponiveis,
+} from '@/lib/agendamentos';
 import { formatarDuracao, formatarMoeda } from '@/lib/formatar';
 import { listarProfissionais } from '@/lib/profissionais';
 import { listarServicos } from '@/lib/servicos';
@@ -33,6 +37,8 @@ export default function AgendarScreen() {
   const [data, setData] = useState<string | null>(null);
   const [horarioEscolhido, setHorarioEscolhido] = useState<string | null>(null);
   const [horarios, setHorarios] = useState<HorarioDisponivel[]>([]);
+  const [diaBloqueado, setDiaBloqueado] = useState(false);
+  const [datasBloqueadas, setDatasBloqueadas] = useState<string[]>([]);
   const [carregandoHorarios, setCarregandoHorarios] = useState(false);
   const [erroHorarios, setErroHorarios] = useState<string | null>(null);
   // Sobe quando a lista de horários precisa ser buscada de novo (ex.: o
@@ -43,10 +49,31 @@ export default function AgendarScreen() {
 
   const servicoIdAtual = servico?.id;
 
+  // Dias em que o profissional escolhido não atende (folga, férias, feriado) ficam
+  // apagados no calendário. Se o dia já escolhido ficou bloqueado, a escolha é limpa.
+  useEffect(() => {
+    setDatasBloqueadas([]);
+    if (profissionalId === null) return;
+
+    let cancelado = false;
+    consultarDatasBloqueadas(profissionalId)
+      .then((resposta) => {
+        if (cancelado) return;
+        setDatasBloqueadas(resposta.datas);
+        setData((atual) => (atual !== null && resposta.datas.includes(atual) ? null : atual));
+      })
+      // Sem a lista, o calendário segue normal: a consulta de horários avisa do bloqueio.
+      .catch(() => {});
+    return () => {
+      cancelado = true;
+    };
+  }, [profissionalId]);
+
   // Os horários livres dependem do serviço (duração), do profissional e do dia.
   useEffect(() => {
     setHorarioEscolhido(null);
     setErroHorarios(null);
+    setDiaBloqueado(false);
     if (servicoIdAtual === undefined || profissionalId === null || data === null) {
       setHorarios([]);
       return;
@@ -56,7 +83,9 @@ export default function AgendarScreen() {
     setCarregandoHorarios(true);
     consultarHorariosDisponiveis(servicoIdAtual, profissionalId, data)
       .then((resposta) => {
-        if (!cancelado) setHorarios(resposta.horarios);
+        if (cancelado) return;
+        setHorarios(resposta.horarios);
+        setDiaBloqueado(resposta.bloqueado);
       })
       .catch((err) => {
         if (cancelado) return;
@@ -106,7 +135,13 @@ export default function AgendarScreen() {
           : 'Não foi possível agendar. Verifique sua conexão com a internet.',
       );
       // Se alguém ocupou o horário nesse meio tempo, a lista é atualizada.
-      if (err instanceof ApiError && err.status === 409) setVersaoHorarios((v) => v + 1);
+      if (err instanceof ApiError && err.status === 409) {
+        setVersaoHorarios((v) => v + 1);
+        // Pode ter sido bloqueado agora: busca a lista de dias bloqueados de novo.
+        consultarDatasBloqueadas(profissionalId)
+          .then((resposta) => setDatasBloqueadas(resposta.datas))
+          .catch(() => {});
+      }
     } finally {
       setEnviando(false);
     }
@@ -140,7 +175,7 @@ export default function AgendarScreen() {
     return (
       <View style={styles.centro}>
         <Aviso tipo="info" texto="Escolha um serviço na lista para começar o agendamento." />
-        <Botao titulo="Ver serviços" onPress={() => router.replace('/')} />
+        <Botao titulo="Ver serviços" onPress={() => router.replace({ pathname: '/', params: { ver: String(Date.now()) } })} />
       </View>
     );
   }
@@ -181,7 +216,10 @@ export default function AgendarScreen() {
 
       <View style={styles.grupo}>
         <Text style={styles.rotulo}>2. Data</Text>
-        <Calendario selecionada={data} onSelecionar={setData} />
+        <Calendario selecionada={data} onSelecionar={setData} datasBloqueadas={datasBloqueadas} />
+        {datasBloqueadas.length > 0 && (
+          <Text style={styles.dica}>Dias riscados: o profissional não atende nessas datas.</Text>
+        )}
       </View>
 
       <View style={styles.grupo}>
@@ -195,6 +233,7 @@ export default function AgendarScreen() {
             onSelecionar={setHorarioEscolhido}
             carregando={carregandoHorarios}
             erro={erroHorarios}
+            bloqueado={diaBloqueado}
           />
         )}
       </View>

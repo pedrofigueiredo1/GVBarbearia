@@ -97,3 +97,27 @@ export function ultimaDataAgendavel() {
     new Date(Date.now() + HORIZONTE_DIAS * 24 * 60 * MS_POR_MINUTO),
   ).data;
 }
+
+// Hoje (AAAA-MM-DD, no horário de Brasília).
+export function hojeNaBarbearia() {
+  return dataEHoraLocais(new Date()).data;
+}
+
+// Confere se `data` (AAAA-MM-DD) é um dia que existe no calendário (recusa,
+// por exemplo, 2026-02-30).
+export function dataExisteNoCalendario(data: string) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(data)) return false;
+  const [ano, mes, dia] = data.split('-').map(Number);
+  const calendario = new Date(Date.UTC(ano, mes - 1, dia));
+  return (
+    calendario.getUTCMonth() === mes - 1 && calendario.getUTCDate() === dia
+  );
+}
+
+// Soma `dias` a uma data (AAAA-MM-DD), sem depender do fuso do servidor.
+export function somarDiasA(data: string, dias: number) {
+  const [ano, mes, dia] = data.split('-').map(Number);
+  return new Date(Date.UTC(ano, mes - 1, dia + dias))
+    .toISOString()
+    .slice(0, 10);
+}
