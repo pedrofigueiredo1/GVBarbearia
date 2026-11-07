@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Image, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AbaAvaliacoes } from '@/components/inicio/AbaAvaliacoes';
 import { AbaProdutos } from '@/components/inicio/AbaProdutos';
@@ -32,6 +33,17 @@ export default function InicioScreen() {
   const avaliacoes = useCarregar(listarAvaliacoes);
   const barbearia = useCarregar(consultarBarbearia);
   const [aba, setAba] = useState<Aba>('Serviços');
+  const rolagem = useRef<{ scrollTo: (opcoes: { y: number; animated?: boolean }) => void } | null>(null);
+
+  // Os botões "Ver serviços" de outras telas chegam aqui com um `ver` novo a cada
+  // toque: volta para a aba Serviços e para o topo, em vez de parar na aba e na
+  // posição em que o cliente tinha deixado a tela.
+  const { ver } = useLocalSearchParams<{ ver?: string }>();
+  useEffect(() => {
+    if (!ver) return;
+    setAba('Serviços');
+    rolagem.current?.scrollTo({ y: 0, animated: false });
+  }, [ver]);
 
   const consultas = [servicos, profissionais, produtos, avaliacoes, barbearia];
   const atualizando = consultas.some((consulta) => consulta.carregando && consulta.dados !== null);
@@ -48,6 +60,9 @@ export default function InicioScreen() {
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       <ScrollView
+        ref={(instancia) => {
+          rolagem.current = instancia;
+        }}
         contentContainerStyle={styles.conteudo}
         refreshControl={
           <RefreshControl

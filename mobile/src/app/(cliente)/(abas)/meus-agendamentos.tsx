@@ -7,7 +7,7 @@ import { Cartao, TextoCartao } from '@/components/Cartao';
 import { useCarregar } from '@/hooks/useCarregar';
 import { ApiError } from '@/lib/api';
 import { cancelarAgendamento, listarAgendamentos } from '@/lib/agendamentos';
-import { formatarData, formatarEstrelas, formatarHora, formatarMoeda } from '@/lib/formatar';
+import { formatarData, formatarHora, formatarMoeda } from '@/lib/formatar';
 import { cores } from '@/tema';
 import { STATUS_LABEL, type Agendamento, type StatusAgendamento } from '@/types/agendamento';
 
@@ -27,9 +27,11 @@ const STATUS_ATIVOS: StatusAgendamento[] = ['PENDENTE', 'CONFIRMADO'];
 
 type Mensagem = { tipo: 'sucesso' | 'erro'; texto: string };
 
-// US Consulta de Agendamento do cliente (item 2.52): os próximos primeiro
-// (do mais perto ao mais longe) e, depois, o histórico (do mais recente ao
-// mais antigo), com a situação de cada um.
+// US Consulta de Agendamento do cliente (item 2.52): só os agendamentos futuros
+// (do mais perto ao mais longe), para a tela não ficar poluída com o passado.
+// Único resto do passado que continua aqui: atendimento concluído ainda sem
+// avaliação, porque é por esta tela que o cliente chega a "Avaliar atendimento".
+// Depois de avaliado, ele some.
 export default function MeusAgendamentosScreen() {
   const { dados, carregando, erro, recarregar } = useCarregar(listarAgendamentos);
   const [cancelandoId, setCancelandoId] = useState<number | null>(null);
@@ -51,12 +53,12 @@ export default function MeusAgendamentosScreen() {
     const proximos = lista
       .filter((a) => STATUS_ATIVOS.includes(a.status) && new Date(a.dataHora).getTime() > agora)
       .sort((a, b) => new Date(a.dataHora).getTime() - new Date(b.dataHora).getTime());
-    const historico = lista
-      .filter((a) => !proximos.includes(a))
+    const paraAvaliar = lista
+      .filter((a) => a.status === 'CONCLUIDO' && !a.avaliacao)
       .sort((a, b) => new Date(b.dataHora).getTime() - new Date(a.dataHora).getTime());
     return [
       { titulo: 'Próximos', proximo: true, data: proximos },
-      { titulo: 'Histórico', proximo: false, data: historico },
+      { titulo: 'Aguardando sua avaliação', proximo: false, data: paraAvaliar },
     ].filter((secao) => secao.data.length > 0);
   }, [dados]);
 
@@ -128,12 +130,12 @@ export default function MeusAgendamentosScreen() {
           <View style={styles.mensagem}>
             <Aviso tipo={mensagem.tipo} texto={mensagem.texto} />
           </View>
-        ) : null
+        ) : undefined
       }
       ListEmptyComponent={
         <View style={styles.vazio}>
-          <Text style={styles.textoVazio}>Você ainda não tem agendamentos.</Text>
-          <Botao titulo="Ver serviços" onPress={() => router.push('/')} />
+          <Text style={styles.textoVazio}>Você não tem agendamentos futuros.</Text>
+          <Botao titulo="Ver serviços" onPress={() => router.navigate({ pathname: '/', params: { ver: String(Date.now()) } })} />
         </View>
       }
       renderSectionHeader={({ section }) => <Text style={styles.secao}>{section.titulo}</Text>}
@@ -152,9 +154,6 @@ export default function MeusAgendamentosScreen() {
                 {formatarData(item.dataHora)} às {formatarHora(item.dataHora)}
               </TextoCartao>
               <TextoCartao>Valor: {formatarMoeda(item.servico.valor)}</TextoCartao>
-              {item.status === 'CONCLUIDO' && item.avaliacao && (
-                <TextoCartao>Sua avaliação: {formatarEstrelas(item.avaliacao.nota)}</TextoCartao>
-              )}
               {item.status === 'CONCLUIDO' && !item.avaliacao && (
                 <View style={styles.acao}>
                   <Botao
