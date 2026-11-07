@@ -53,7 +53,6 @@ const somar = (d, n) => { const [a, m, dd] = d.split('-').map(Number); return ne
   checar('GET /dashboard 200', r.status === 200, JSON.stringify(r.corpo).slice(0, 200));
   const d = r.corpo;
   const delta = (campo, p) => d.passagem[p][campo] - base.passagem[p][campo];
-  const deltaAnt = (campo, p) => d.passagem[p].anterior[campo] - base.passagem[p].anterior[campo];
 
   const mesmoMes = (dia) => dia.slice(0, 7) === hoje.slice(0, 7);
   const contaMes = [0, -1, -1, -5, -20, -20].filter((n) => mesmoMes(somar(hoje, n))).length;
@@ -61,13 +60,11 @@ const somar = (d, n) => { const [a, m, dd] = d.split('-').map(Number); return ne
   console.log('1) passagem de clientes (variação causada pelos dados de teste)');
   checar('hoje +1', delta('atendimentos', 'hoje') === 1, delta('atendimentos', 'hoje'));
   checar('hoje faturamento +45', delta('faturamento', 'hoje') === 45);
-  checar('hoje anterior (ontem) +2', deltaAnt('atendimentos', 'hoje') === 2);
   checar('ontem +2 e R$ 85', delta('atendimentos', 'ontem') === 2 && delta('faturamento', 'ontem') === 85);
-  checar('ontem anterior (anteontem) +0 (o de anteontem foi cancelado)', deltaAnt('atendimentos', 'ontem') === 0);
   checar('7 dias +4 (hoje, ontem x2, 5 dias atrás)', delta('atendimentos', 'ultimos7Dias') === 4);
   checar('7 dias faturamento +175', delta('faturamento', 'ultimos7Dias') === 175, delta('faturamento', 'ultimos7Dias'));
-  checar('30 dias +6', delta('atendimentos', 'ultimos30Dias') === 6);
-  checar('30 dias anterior +1 (40 dias atrás)', deltaAnt('atendimentos', 'ultimos30Dias') === 1);
+  checar('30 dias +6 (o de 40 dias atrás fica de fora)', delta('atendimentos', 'ultimos30Dias') === 6);
+  checar('sem comparação com períodos anteriores', Object.values(d.passagem).every((p) => !('anterior' in p)));
   checar('mês atual conta só os dias do mês', delta('atendimentos', 'mesAtual') === contaMes, `${delta('atendimentos', 'mesAtual')} vs ${contaMes}`);
 
   console.log('2) resumo do dia');

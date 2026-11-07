@@ -2,17 +2,14 @@
 // Ctrl+F "PASSAGEM DE CLIENTES" para achar este bloco.
 // Quantos clientes passaram pela barbearia (atendimentos CONCLUÍDOS) em cada
 // período do dashboard: hoje, ontem, últimos 7 dias, últimos 30 dias e mês
-// atual. Cada período vem junto com o período anterior equivalente, para o
-// painel mostrar se subiu ou desceu.
+// atual, sem comparação com períodos anteriores.
 import { Injectable } from '@nestjs/common';
 import { StatusAgendamento } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import {
   diaLocalDe,
-  diasEntre,
   hojeLocal,
   inicioDoMes,
-  inicioDoMesAnterior,
   instanteDoDia,
   somarDias,
 } from './compartilhado';
@@ -20,10 +17,6 @@ import {
 export interface Totais {
   atendimentos: number;
   faturamento: number;
-}
-
-export interface PeriodoComComparacao extends Totais {
-  anterior: Totais;
 }
 
 @Injectable()
@@ -34,48 +27,17 @@ export class PassagemDeClientes {
     const hoje = hojeLocal();
     const amanha = somarDias(hoje, 1);
 
-    // Cada período é [inicio, fimExclusivo) em dias de Brasília; `anterior` é o
-    // período imediatamente antes, do mesmo tamanho.
-    const mesAtual = inicioDoMes(hoje);
-    const mesAnterior = inicioDoMesAnterior(hoje);
-    const diasDoMes = diasEntre(mesAtual, amanha);
+    // Cada período é [de, ate) em dias de Brasília.
     const periodos = {
-      hoje: {
-        de: hoje,
-        ate: amanha,
-        antesDe: somarDias(hoje, -1),
-        antesAte: hoje,
-      },
-      ontem: {
-        de: somarDias(hoje, -1),
-        ate: hoje,
-        antesDe: somarDias(hoje, -2),
-        antesAte: somarDias(hoje, -1),
-      },
-      ultimos7Dias: {
-        de: somarDias(hoje, -6),
-        ate: amanha,
-        antesDe: somarDias(hoje, -13),
-        antesAte: somarDias(hoje, -6),
-      },
-      ultimos30Dias: {
-        de: somarDias(hoje, -29),
-        ate: amanha,
-        antesDe: somarDias(hoje, -59),
-        antesAte: somarDias(hoje, -29),
-      },
-      // O mês atual é comparado com o mesmo trecho do mês anterior (dia 1 até o
-      // mesmo dia), senão o mês corrente sempre perderia para um mês fechado.
-      mesAtual: {
-        de: mesAtual,
-        ate: amanha,
-        antesDe: mesAnterior,
-        antesAte: somarDias(mesAnterior, diasDoMes),
-      },
+      hoje: { de: hoje, ate: amanha },
+      ontem: { de: somarDias(hoje, -1), ate: hoje },
+      ultimos7Dias: { de: somarDias(hoje, -6), ate: amanha },
+      ultimos30Dias: { de: somarDias(hoje, -29), ate: amanha },
+      mesAtual: { de: inicioDoMes(hoje), ate: amanha },
     };
 
     const inicioBusca = Object.values(periodos)
-      .flatMap((p) => [p.de, p.antesDe])
+      .map((p) => p.de)
       .sort()[0];
 
     const concluidos = await this.prisma.agendamento.findMany({
@@ -115,12 +77,9 @@ export class PassagemDeClientes {
       faturamento: Math.round(t.faturamento * 100) / 100,
     });
 
-    const resultado = {} as Record<keyof typeof periodos, PeriodoComComparacao>;
+    const resultado = {} as Record<keyof typeof periodos, Totais>;
     for (const [nome, p] of Object.entries(periodos)) {
-      resultado[nome as keyof typeof periodos] = {
-        ...arredondar(somar(p.de, p.ate)),
-        anterior: arredondar(somar(p.antesDe, p.antesAte)),
-      };
+      resultado[nome as keyof typeof periodos] = arredondar(somar(p.de, p.ate));
     }
 
     return resultado;

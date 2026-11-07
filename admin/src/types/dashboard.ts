@@ -5,16 +5,12 @@ export interface Totais {
   faturamento: number;
 }
 
-export interface PeriodoComComparacao extends Totais {
-  anterior: Totais;
-}
-
 export interface Passagem {
-  hoje: PeriodoComComparacao;
-  ontem: PeriodoComComparacao;
-  ultimos7Dias: PeriodoComComparacao;
-  ultimos30Dias: PeriodoComComparacao;
-  mesAtual: PeriodoComComparacao;
+  hoje: Totais;
+  ontem: Totais;
+  ultimos7Dias: Totais;
+  ultimos30Dias: Totais;
+  mesAtual: Totais;
 }
 
 export interface AgendamentoResumo {

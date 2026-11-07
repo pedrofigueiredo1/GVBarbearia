@@ -24,8 +24,8 @@ function Indicador({ titulo, valor, detalhe }: { titulo: string; valor: string; 
 
 // Tela inicial do painel (é para onde o login leva): o fluxo da barbearia de
 // relance. A "passagem de clientes" conta os atendimentos concluídos de cada
-// período, comparados com o período anterior; embaixo ficam o que precisa de
-// ação (pendentes), a agenda de hoje e os números dos últimos 30 dias.
+// período; embaixo ficam o que precisa de ação (pendentes), a agenda de hoje e
+// os números dos últimos 30 dias.
 export default function DashboardPage() {
   const [dados, setDados] = useState<Dashboard | null>(null);
   const [carregando, setCarregando] = useState(true);
@@ -83,23 +83,11 @@ export default function DashboardPage() {
               Passagem de clientes
             </h3>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-5">
-              <CartaoPeriodo titulo="Hoje" comparadoCom="vs ontem" periodo={dados.passagem.hoje} />
-              <CartaoPeriodo titulo="Ontem" comparadoCom="vs anteontem" periodo={dados.passagem.ontem} />
-              <CartaoPeriodo
-                titulo="Últimos 7 dias"
-                comparadoCom="vs 7 dias antes"
-                periodo={dados.passagem.ultimos7Dias}
-              />
-              <CartaoPeriodo
-                titulo="Últimos 30 dias"
-                comparadoCom="vs 30 dias antes"
-                periodo={dados.passagem.ultimos30Dias}
-              />
-              <CartaoPeriodo
-                titulo="Mês atual"
-                comparadoCom="vs mês anterior"
-                periodo={dados.passagem.mesAtual}
-              />
+              <CartaoPeriodo titulo="Hoje" periodo={dados.passagem.hoje} />
+              <CartaoPeriodo titulo="Ontem" periodo={dados.passagem.ontem} />
+              <CartaoPeriodo titulo="Últimos 7 dias" periodo={dados.passagem.ultimos7Dias} />
+              <CartaoPeriodo titulo="Últimos 30 dias" periodo={dados.passagem.ultimos30Dias} />
+              <CartaoPeriodo titulo="Mês atual" periodo={dados.passagem.mesAtual} />
             </div>
           </section>
 
